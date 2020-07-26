@@ -11,7 +11,7 @@ module CIV {
             this.pointyTiles = pointy;
         }
 
-        public ring(q, r, radius) {
+        public ring(q, r, radius): Array<{ q: number, r: number }> {
             var i, j, len, moveDirection, moveDirectionIndex, moveDirections, ref, result;
             result = [];
             moveDirections = [[1, 0], [0, -1], [-1, 0], [-1, 1], [0, 1], [1, 0], [1, -1]];
@@ -31,7 +31,7 @@ module CIV {
             return result;
         };
 
-        public hexagon(q, r, radius, solid) {
+        public hexagon(q, r, radius, solid): Array<{ q: number, r: number }> {
             var currentRing, i, ref, result;
             result = [];
             if (solid) {
@@ -46,7 +46,7 @@ module CIV {
             return result;
         };
 
-        public neighbors(q, r) {
+        public neighbors(q, r): Array<{ q: number, r: number }> {
             var i, len, neighbor, neighbors, result;
             result = [];
             neighbors = [[1, 0], [1, -1], [0, -1], [-1, 0], [-1, 1], [0, 1]];
@@ -60,7 +60,7 @@ module CIV {
             return result;
         };
 
-        public getCenterXY(q, r) {
+        public getCenterXY(q, r): { x: number, y: number } {
             var x, y;
             if (this.pointyTiles) {
                 x = (this.tileSize + this.tileSpacing) * Math.sqrt(3) * (q + r / 2);
@@ -143,6 +143,47 @@ module CIV {
                 z: -axial.q - axial.r
             };
         };
+
+        public static getPoints(config: {
+            width: number,
+            height: number,
+            x: number,
+            y: number
+        }): Array<Phaser.Geom.Point> {
+            let points = [];
+            for (let i = 0; i < 6; i++) {
+                points[i] = new Phaser.Geom.Point();
+            }
+
+            let x = config.x;
+            let y = config.y;
+            var w = config.width;
+            var h = config.height;
+            var halfW = w / 2;
+            var quarterW = w / 4;
+            var halfH = h / 2;
+            var quarterH = h / 4;
+
+            points[0].x = x + halfW;
+            points[0].y = y - quarterH;
+
+            points[1].x = x + halfW;
+            points[1].y = y + quarterH;
+
+            points[2].x = x;
+            points[2].y = y + halfH;
+
+            points[3].x = x - halfW;
+            points[3].y = y + quarterH;
+
+            points[4].x = x - halfW;
+            points[4].y = y - quarterH;
+
+            points[5].x = x;
+            points[5].y = y - halfH;
+
+            return points;
+        }
 
     }
 

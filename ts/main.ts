@@ -24,13 +24,16 @@ var app = {
 
         const config = {
             type: Phaser.AUTO,
-            backgroundColor: '#125555',
+            backgroundColor: '#112E40',
             scale: {
                 mode: Phaser.Scale.FIT,
                 width: window.innerWidth * devicePixelRatio,
                 height: window.innerHeight * devicePixelRatio,
             },
-            scene: CIV.Game
+            scene: [
+                CIV.Boot,
+                CIV.Game
+            ]
         };
 
         const game = new Phaser.Game(config);

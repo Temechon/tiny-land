@@ -1,11 +1,11 @@
 {
     "compilerOptions": {
         "target": "es5",
-        "typeRoots": [
-            "ts/typings"
-        ],
         "sourceMap": true,
-        "outDir": "./js/"
+        "outDir": "./js/",
+        "types": [
+            "chance"
+        ]
     },
     "include": [
         "!ts/typings",
