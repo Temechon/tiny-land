@@ -10,6 +10,11 @@ module CIV {
         public q: number;
         public name: string;
 
+        /** The stuff that is currently on this tile - Can be one unit and one city for example*/
+        private _onIt: IClickable[] = [];
+        /** The index in the 'onIt' array of the stuff that is currently activated */
+        private currentlyActivatedIndex: number = 0;
+
         constructor(config: {
             scene: Phaser.Scene,
             x: number,
@@ -27,10 +32,7 @@ module CIV {
 
             this.setInteractive();
 
-            this.on('pointerdown', () => {
-                console.log("q/r", this.q, this.r)
-                console.log("x/y", this.getStorageXY().x, this.getStorageXY().y)
-            });
+            this.on('pointerdown', this.onPointerDown.bind(this));
 
         }
 
@@ -51,6 +53,10 @@ module CIV {
             return this.type === TileType.Water || this.type === TileType.DeepWater;
         }
 
+        /**
+         * Returns a graphics texture that is the same hexagon than this tile
+         * @param color 
+         */
         public getHexPrint(color: number): Phaser.GameObjects.Graphics {
 
             let radius = Game.INSTANCE.make.graphics({ x: this.position.x, y: this.position.y });
@@ -88,6 +94,60 @@ module CIV {
             // img.scale = ratio;
             // return img;
         }
+
+        public onPointerDown() {
+            if (this._onIt.length === 0) {
+                // Display something when clicking on this tile
+                return;
+            }
+            // If we cycle around all stuff on this tile, reset all
+            if (this.currentlyActivatedIndex === this._onIt.length) {
+                this._onIt[this.currentlyActivatedIndex - 1].deactivate();
+                this.currentlyActivatedIndex = 0;
+                return;
+            }
+            // Deactivate last activated stuff
+            if (this.currentlyActivatedIndex - 1 >= 0) {
+                this._onIt[this.currentlyActivatedIndex - 1].deactivate();
+            }
+            // Activate next stuff on this tile
+            let stuff = this._onIt[this.currentlyActivatedIndex];
+            this.currentlyActivatedIndex++;
+            stuff.activate();
+        }
+
+        public deactivate() {
+            for (let s of this._onIt) {
+                s.deactivate();
+            }
+        }
+
+        /**
+         * Add the given stuff at the beginning of the onIt array. This stuff is now on this tile 
+         */
+        public addClickable(c: IClickable) {
+            this._onIt.unshift(c);
+        }
+
+        /**
+         * Remove the given stuff from the onIt array. This stuff is no longer on this tile 
+         */
+        public removeClickable(c: IClickable) {
+            let index = this._onIt.indexOf(c);
+            if (index === -1) {
+                console.warn("This stuff was not on this tile!")
+            } else {
+                this._onIt.splice(index, 1);
+            }
+        }
+
+        /** 
+         * Returns true if this tile has a unit on it, false otherwise
+         */
+        public get hasUnit(): boolean {
+            return this._onIt.filter(s => s instanceof Unit).length > 0;
+        }
+
     }
 
 }

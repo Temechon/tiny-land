@@ -6,8 +6,15 @@ module CIV {
     export class Tribe {
 
         public cities: Array<City> = [];
+        public units : Phaser.GameObjects.Container;
+
+        /** The color of the influence radius */
+        public color: number = 0xff0000;
 
         constructor(public name: string) {
+            this.units = Game.INSTANCE.make.container({x:0, y:0});
         }
+
+
     }
 }

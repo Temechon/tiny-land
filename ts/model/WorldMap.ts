@@ -1,6 +1,5 @@
 module CIV {
     export class WorldMap extends Phaser.GameObjects.Container {
-
         /** All tiles of this map, indexed by hexagon XY coordinates. Hex(q, r) is at array[x=r+SIZE][y=q+SIZE]  */
         private _tiles: Array<Array<Tile>> = [];
 
@@ -8,14 +7,14 @@ module CIV {
         public grid: HexGrid;
 
         /** The walking graph for land units */
-        private _landgraph: Graph;
+        // private _landgraph: Graph;
 
         constructor(scene: Phaser.Scene) {
             super(scene);
 
             this.grid = new HexGrid(99, true);
 
-            this._landgraph = new Graph();
+            // this._landgraph = new Graph();
 
             let mapCoords = this.grid.hexagon(0, 0, Constants.MAP.SIZE, true);
 
@@ -85,7 +84,7 @@ module CIV {
                 }
 
                 // Add this tile to the land graph
-                this.addTileToGraph(t);
+                // this.addTileToGraph(t);
             }
 
 
@@ -97,7 +96,7 @@ module CIV {
         /**
          * A starting city is a random land tile
          */
-        public setStartingCity(): City {
+        public setStartingCity(tribe: Tribe): City {
             let allLandTiles = this.getAllTiles(t => t.type === TileType.Land);
 
             let viableLocationFound = false;
@@ -122,10 +121,29 @@ module CIV {
             let city = new City({
                 scene: this.scene,
                 tile: startingTile,
-                worldmap: this
+                worldmap: this,
+                tribe: tribe
             });
 
             return city;
+        }
+
+        public getMoveRange(config: { from: Tile; range: number; }): Phaser.GameObjects.Image[] {
+            let res = [];
+
+            let range = this.getTilesByAxialCoords(this.grid.ring(config.from.q, config.from.r, 1));
+            for (let n of range) {
+                if (n.isWater) {
+                    continue;
+                }
+                if (n.hasUnit) {
+                    continue;
+                }
+                res.push(n.getHexPrint(0xff0000));
+            }
+
+
+            return res;
         }
 
 
@@ -147,8 +165,6 @@ module CIV {
 
         /**
          * Return a tile by its given axial coordinates. Uselful when ahg lib gives only coordinates
-         * @param q 
-         * @param r 
          */
         public getTileByAxialCoords(q: number, r: number): Tile | null {
             if (q < -Constants.MAP.SIZE || q > Constants.MAP.SIZE) {
@@ -202,55 +218,56 @@ module CIV {
         /**
          * A the given tile in the walking graph
          */
-        public addTileToGraph(tile: Tile) {
-            if (tile.isWater) {
-                // Nothing to do
-                return;
-            }
+        // public addTileToGraph(tile: Tile) {
+        //     if (tile.isWater) {
+        //         // Nothing to do
+        //         return;
+        //     }
 
-            let neighboursSet = {};
+        //     let neighboursSet = {};
 
-            let neighbours = this.getTilesByAxialCoords(this.grid.neighbors(tile.q, tile.r));
-            for (let n of neighbours) {
-                if (n.isWater) {
-                    continue;
-                }
-                // Road from tile to n
-                neighboursSet[n.name] = 1;
-            }
-            this._landgraph.addVertex(tile.name, neighboursSet);
-        }
+        //     let neighbours = this.getTilesByAxialCoords(this.grid.neighbors(tile.q, tile.r));
+        //     for (let n of neighbours) {
+        //         if (n.isWater) {
+        //             continue;
+        //         }
+        //         // Road from tile to n
+        //         neighboursSet[n.name] = 1;
+        //     }
+        //     this._landgraph.addVertex(tile.name, neighboursSet);
+        // }
 
-        public displayGraph() {
+        /** DEBUG USEFULNESS ONLY */
+        // public displayGraph() {
 
-            let graphics = Game.INSTANCE.add.graphics();
-            graphics.lineStyle(5, 0xff0000, 0.15)
-            graphics.fillStyle(0xff0000)
-            // graphics.fillRect(0, 0, 300, 300);
+        //     let graphics = Game.INSTANCE.add.graphics();
+        //     graphics.lineStyle(5, 0xff0000, 0.15)
+        //     graphics.fillStyle(0xff0000)
+        //     // graphics.fillRect(0, 0, 300, 300);
 
-            // DEBUG : VIEW GRAPH BETWEEN HEXAGONS
-            let viewLink = (tile: Tile, neighbors: any) => {
+        //     // DEBUG : VIEW GRAPH BETWEEN HEXAGONS
+        //     let viewLink = (tile: Tile, neighbors: any) => {
 
-                for (let n in neighbors) {
-                    graphics.beginPath();
+        //         for (let n in neighbors) {
+        //             graphics.beginPath();
 
-                    graphics.moveTo(tile.position.x, tile.position.y);
-                    // get hex by name
-                    let hexn = this.getAllTiles(t => t.name === n)[0];
-                    let pos = hexn.position;
-                    graphics.lineTo(pos.x, pos.y);;
+        //             graphics.moveTo(tile.position.x, tile.position.y);
+        //             // get hex by name
+        //             let hexn = this.getAllTiles(t => t.name === n)[0];
+        //             let pos = hexn.position;
+        //             graphics.lineTo(pos.x, pos.y);;
 
-                    graphics.closePath()
-                    graphics.strokePath();
-                }
-            }
+        //             graphics.closePath()
+        //             graphics.strokePath();
+        //         }
+        //     }
 
-            for (let vertex in this._landgraph.vertices) {
-                // get hex by name
-                let hex = this.getAllTiles(t => t.name === vertex)[0];
-                viewLink(hex, this._landgraph.vertices[vertex]);
-            }
-            // END DEBUG
-        }
+        //     for (let vertex in this._landgraph.vertices) {
+        //         // get hex by name
+        //         let hex = this.getAllTiles(t => t.name === vertex)[0];
+        //         viewLink(hex, this._landgraph.vertices[vertex]);
+        //     }
+        //     // END DEBUG
+        // }
     }
 }

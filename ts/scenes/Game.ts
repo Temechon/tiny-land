@@ -27,17 +27,13 @@ module CIV {
             let map = new WorldMap(this);
 
 
-            this.player.cities.push(map.setStartingCity());
+            this.player.cities.push(map.setStartingCity(this.player));
 
             //this.cameras.main.zoom = 0.8; 
             let startingCity = this.player.cities[0];
             this.cameras.main.centerOn(startingCity.position.x, startingCity.position.y);
 
-
-        }
-
-
-        update(time, delta) {
+            startingCity.produceUnit();
         }
     }
 }

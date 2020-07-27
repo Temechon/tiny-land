@@ -1,35 +1,36 @@
 module CIV {
-    export class City {
+    export class City implements IClickable {
 
         private _tile: Tile;
         private scene: Phaser.Scene;
         public worldmap: WorldMap;
 
+        /** The tribe this city belongs to */
+        private _tribe: Tribe;
 
         /** The number of hexagon around this city that can be used by this city */
         public influenceRadius: number = 1;
-        /** The color of the influence radius */
-        public influenceColor: number = 0xff0000;
         /** The tetxure used to display the influence */
         private _influenceTexture: Phaser.GameObjects.RenderTexture;
 
         constructor(config: {
             scene: Phaser.Scene,
             worldmap: WorldMap,
-            tile: Tile
+            tile: Tile,
+            tribe: Tribe
         }) {
 
             this.scene = config.scene;
             this._tile = config.tile;
             this.worldmap = config.worldmap;
+            this._tribe = config.tribe;
 
             this._tile.setTexture('city');
             this._tile.setTint(0xffffff);
 
-            this.influenceColor = 0xffff00
-
             // Draw its influence area
             this._drawInfluenceRadius();
+            this._tile.addClickable(this);
         }
 
         public get position(): Phaser.Geom.Point {
@@ -38,6 +39,20 @@ module CIV {
             return new Phaser.Geom.Point(x, y);
         }
 
+        /**
+         * TODO Just for test here
+         */
+        public produceUnit() {
+            let unit = new Unit({
+                scene: Game.INSTANCE,
+                x: this._tile.position.x,
+                y: this._tile.position.y,
+                key: 'warrior',
+                map: this.worldmap,
+                tile: this._tile
+            });
+            Game.INSTANCE.add.existing(unit);
+        }
 
         private _drawInfluenceRadius() {
 
@@ -65,7 +80,7 @@ module CIV {
             let mask = Game.INSTANCE.make.container({ x: this.position.x, y: this.position.y, add: false });
 
             for (let t of ring) {
-                let image = t.getHexPrint(this.influenceColor);
+                let image = t.getHexPrint(this._tribe.color);
                 image.x -= this.position.x;
                 image.y -= this.position.y;
                 image.scale *= 1.1
@@ -91,6 +106,16 @@ module CIV {
             rt.mask.invertAlpha = true;
 
             this._influenceTexture = rt;
+        }
+
+        activate() {
+            // TODO Display the build menu
+            console.log("CITY ACTIVATED");
+
+        }
+        deactivate() {
+            // TODO Remove the build menu
+            console.log("CITY DEACTIVATED");
         }
 
     }

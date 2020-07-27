@@ -16,6 +16,7 @@ module CIV {
         preload() {
             this.load.image('hex', 'assets/hex.png');
             this.load.image('city', 'assets/city.png');
+            this.load.image('warrior', 'assets/warrior.png');
         }
 
         create() {
