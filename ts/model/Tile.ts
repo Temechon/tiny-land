@@ -9,6 +9,7 @@ module CIV {
         /** Column number */
         public q: number;
         public name: string;
+        private _map: WorldMap;
 
         /** The stuff that is currently on this tile - Can be one unit and one city for example*/
         private _onIt: IClickable[] = [];
@@ -21,7 +22,8 @@ module CIV {
             y: number,
             r: number,
             q: number
-            key: string
+            key: string,
+            map: WorldMap
         }) {
             super(config.scene, config.x, config.y, config.key);
 
@@ -29,6 +31,7 @@ module CIV {
             this.r = config.r;
             this.q = config.q;
             this.name = chance.guid();
+            this._map = config.map;
 
             this.setInteractive();
 
@@ -72,18 +75,18 @@ module CIV {
                 y: 0
             })
 
-            radius.moveTo(points[0].x, points[0].y);
-            for (let p = 1; p < points.length; p++) {
-                let pp = points[p];
-                radius.lineTo(pp.x, pp.y);
-            }
-            radius.closePath();
-            radius.fillPath();
-
-            // let tex = radius.generateTexture(this.name, this.width, this.height);
-            // radius.destroy();
+            radius.fillPoints(points);
+            radius.setInteractive(
+                new Phaser.Geom.Polygon(points),
+                Phaser.Geom.Polygon.Contains
+            );
 
             return radius;
+            // radius.generateTexture(this.name, this.width, this.height);
+            // return Game.INSTANCE.add.sprite(this.position.x, this.position.y, this.name);
+
+            // Game.INSTANCE.textures.get(this.name);
+            // radius.destroy();
 
             // let img = this.scene.make.image({
             //     scene: this.scene,
@@ -96,6 +99,11 @@ module CIV {
         }
 
         public onPointerDown() {
+            console.log('tile selected!')
+            // Deactivate all other tiles
+            this._map.deactivateAllOtherTiles(this);
+
+
             if (this._onIt.length === 0) {
                 // Display something when clicking on this tile
                 return;
@@ -120,6 +128,7 @@ module CIV {
             for (let s of this._onIt) {
                 s.deactivate();
             }
+            this.currentlyActivatedIndex = 0;
         }
 
         /**

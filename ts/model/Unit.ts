@@ -13,9 +13,9 @@ module CIV {
     export class Unit extends Phaser.GameObjects.Image implements IClickable {
 
         /** The number of tile this unit can go through inone turn */
-        public range: number = 1;
+        public range: number = 3;
         /** The sprite displayed on each tile this unit can move to */
-        private _moveRange: Array<Phaser.GameObjects.Image>;
+        private _moveRange: Array<{ tile: Tile, graphic: Phaser.GameObjects.Graphics }>;
         public currentTile: Tile;
         public worldmap: WorldMap;
 
@@ -38,7 +38,10 @@ module CIV {
         }
 
         deactivate() {
-            this._moveRange.forEach(i => i.destroy());
+            if (this._moveRange) {
+                this._moveRange.forEach(i => i.graphic.destroy());
+                this._moveRange = null;
+            }
             if (this.state === UnitState.ACTIVATED) {
                 this.state = UnitState.IDLE
             }
@@ -53,11 +56,42 @@ module CIV {
                     from: this.currentTile,
                     range: this.range
                 });
-                for (let h of this._moveRange) {
-                    h.scale *= 0.5
+
+                for (let obj of this._moveRange) {
+                    let h = obj.graphic;
+                    h.alpha = 0.5
                     Game.INSTANCE.add.existing(h);
+                    h.on('pointerdown', this.moveTo.bind(this, obj.tile));
                 }
             }
+        }
+
+        /**
+         * Move this unit to the given tile.
+         */
+        moveTo(tile: Tile) {
+            this.state = UnitState.MOVING;
+
+            Game.INSTANCE.add.tween({
+                targets: this,
+                x: tile.position.x,
+                y: tile.position.y,
+                duration: 150,
+                onComplete: () => {
+                    this.state = UnitState.IDLE;
+                }
+
+            })
+
+            // Deactivate this unit
+            this.deactivate();
+
+            // Remove this unit from the current tile
+            this.currentTile.removeClickable(this);
+            // Add this unit to the given tile
+            this.currentTile = tile;
+            this.currentTile.addClickable(this);
+
         }
     }
 }

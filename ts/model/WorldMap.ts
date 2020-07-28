@@ -1,5 +1,6 @@
 module CIV {
     export class WorldMap extends Phaser.GameObjects.Container {
+
         /** All tiles of this map, indexed by hexagon XY coordinates. Hex(q, r) is at array[x=r+SIZE][y=q+SIZE]  */
         private _tiles: Array<Array<Tile>> = [];
 
@@ -32,7 +33,8 @@ module CIV {
                     y: center.y * ratio,
                     r: c.r,
                     q: c.q,
-                    key: 'hex'
+                    key: 'hex',
+                    map: this
                 });
                 tile.setTint(0xA4BF69);
                 tile.type = TileType.Land;
@@ -128,10 +130,13 @@ module CIV {
             return city;
         }
 
-        public getMoveRange(config: { from: Tile; range: number; }): Phaser.GameObjects.Image[] {
-            let res = [];
+        public getMoveRange(config: { from: Tile; range: number; }): Array<{ tile: Tile, graphic: Phaser.GameObjects.Graphics }> {
+            let res: Array<{ tile: Tile, graphic: Phaser.GameObjects.Graphics }> = [];
+            let range: Tile[] = [];
+            for (let i = config.range; i >= 1; i--) {
+                range.push(...this.getTilesByAxialCoords(this.grid.ring(config.from.q, config.from.r, i)))
+            }
 
-            let range = this.getTilesByAxialCoords(this.grid.ring(config.from.q, config.from.r, 1));
             for (let n of range) {
                 if (n.isWater) {
                     continue;
@@ -139,11 +144,21 @@ module CIV {
                 if (n.hasUnit) {
                     continue;
                 }
-                res.push(n.getHexPrint(0xff0000));
+                res.push({
+                    tile: n,
+                    graphic: n.getHexPrint(0xff0000)
+                });
             }
 
 
             return res;
+        }
+
+        /**
+         * Deactivate all tiles (before activating one generally)
+         */
+        public deactivateAllOtherTiles(tile: Tile) {
+            this.doForAllTiles(t => t.name !== tile.name, t => t.deactivate());
         }
 
 
@@ -195,7 +210,7 @@ module CIV {
         /**
          * Returns all tile that satisfies the given predicate
          */
-        public getAllTiles(predicate: (t: Tile) => boolean): Array<Tile> {
+        private getAllTiles(predicate: (t: Tile) => boolean): Array<Tile> {
 
             let res = [];
 
@@ -208,6 +223,32 @@ module CIV {
                         continue;
                     }
                     if (predicate(t)) {
+                        res.push(t);
+                    }
+                }
+            }
+            return res;
+        }
+
+
+        /**
+         * Do a specific action for all tiles where the given predicate is true.
+         * Returns all tiles impacted by this action
+         */
+        public doForAllTiles(predicate: (t: Tile) => boolean, action: (t: Tile) => void): Array<Tile> {
+
+            let res = [];
+
+            for (let x = 0; x < this._tiles.length; x++) {
+                for (let y = 0; y < this._tiles[0].length; y++) {
+                    let t = this.getTile(x, y);
+
+                    // If the tile is empty, continue
+                    if (!t) {
+                        continue;
+                    }
+                    if (predicate(t)) {
+                        action(t);
                         res.push(t);
                     }
                 }
