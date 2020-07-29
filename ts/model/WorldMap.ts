@@ -8,14 +8,14 @@ module CIV {
         public grid: HexGrid;
 
         /** The walking graph for land units */
-        // private _landgraph: Graph;
+        private _landgraph: Graph;
 
         constructor(scene: Phaser.Scene) {
             super(scene);
 
             this.grid = new HexGrid(99, true);
 
-            // this._landgraph = new Graph();
+            this._landgraph = new Graph();
 
             let mapCoords = this.grid.hexagon(0, 0, Constants.MAP.SIZE, true);
 
@@ -86,7 +86,7 @@ module CIV {
                 }
 
                 // Add this tile to the land graph
-                // this.addTileToGraph(t);
+                this.addTileToGraph(t);
             }
 
 
@@ -130,6 +130,9 @@ module CIV {
             return city;
         }
 
+        /**
+         * Returns the list of tile (with its graphics) corrsponding to the given moving range 
+         */
         public getMoveRange(config: { from: Tile; range: number; }): Array<{ tile: Tile, graphic: Phaser.GameObjects.Graphics }> {
             let res: Array<{ tile: Tile, graphic: Phaser.GameObjects.Graphics }> = [];
             let range: Tile[] = [];
@@ -138,18 +141,26 @@ module CIV {
             }
 
             for (let n of range) {
+                // Check if the path between the 'from' tile and this neighbours is <= to the range number
                 if (n.isWater) {
                     continue;
                 }
                 if (n.hasUnit) {
                     continue;
                 }
+
+                let path = this._landgraph.shortestPath(config.from.name, n.name);
+                console.log(path.length);
+                if (path.length <= 1 || path.length > config.range + 1) {
+                    continue;
+                }
+
+
                 res.push({
                     tile: n,
                     graphic: n.getHexPrint(0xff0000)
                 });
             }
-
 
             return res;
         }
@@ -259,56 +270,56 @@ module CIV {
         /**
          * A the given tile in the walking graph
          */
-        // public addTileToGraph(tile: Tile) {
-        //     if (tile.isWater) {
-        //         // Nothing to do
-        //         return;
-        //     }
+        public addTileToGraph(tile: Tile) {
+            if (tile.isWater) {
+                // Nothing to do
+                return;
+            }
 
-        //     let neighboursSet = {};
+            let neighboursSet = {};
 
-        //     let neighbours = this.getTilesByAxialCoords(this.grid.neighbors(tile.q, tile.r));
-        //     for (let n of neighbours) {
-        //         if (n.isWater) {
-        //             continue;
-        //         }
-        //         // Road from tile to n
-        //         neighboursSet[n.name] = 1;
-        //     }
-        //     this._landgraph.addVertex(tile.name, neighboursSet);
-        // }
+            let neighbours = this.getTilesByAxialCoords(this.grid.neighbors(tile.q, tile.r));
+            for (let n of neighbours) {
+                if (n.isWater) {
+                    continue;
+                }
+                // Road from tile to n
+                neighboursSet[n.name] = 1;
+            }
+            this._landgraph.addVertex(tile.name, neighboursSet);
+        }
 
         /** DEBUG USEFULNESS ONLY */
-        // public displayGraph() {
+        public displayGraph() {
 
-        //     let graphics = Game.INSTANCE.add.graphics();
-        //     graphics.lineStyle(5, 0xff0000, 0.15)
-        //     graphics.fillStyle(0xff0000)
-        //     // graphics.fillRect(0, 0, 300, 300);
+            let graphics = Game.INSTANCE.add.graphics();
+            graphics.lineStyle(5, 0xff0000, 0.15)
+            graphics.fillStyle(0xff0000)
+            // graphics.fillRect(0, 0, 300, 300);
 
-        //     // DEBUG : VIEW GRAPH BETWEEN HEXAGONS
-        //     let viewLink = (tile: Tile, neighbors: any) => {
+            // DEBUG : VIEW GRAPH BETWEEN HEXAGONS
+            let viewLink = (tile: Tile, neighbors: any) => {
 
-        //         for (let n in neighbors) {
-        //             graphics.beginPath();
+                for (let n in neighbors) {
+                    graphics.beginPath();
 
-        //             graphics.moveTo(tile.position.x, tile.position.y);
-        //             // get hex by name
-        //             let hexn = this.getAllTiles(t => t.name === n)[0];
-        //             let pos = hexn.position;
-        //             graphics.lineTo(pos.x, pos.y);;
+                    graphics.moveTo(tile.position.x, tile.position.y);
+                    // get hex by name
+                    let hexn = this.getAllTiles(t => t.name === n)[0];
+                    let pos = hexn.position;
+                    graphics.lineTo(pos.x, pos.y);;
 
-        //             graphics.closePath()
-        //             graphics.strokePath();
-        //         }
-        //     }
+                    graphics.closePath()
+                    graphics.strokePath();
+                }
+            }
 
-        //     for (let vertex in this._landgraph.vertices) {
-        //         // get hex by name
-        //         let hex = this.getAllTiles(t => t.name === vertex)[0];
-        //         viewLink(hex, this._landgraph.vertices[vertex]);
-        //     }
-        //     // END DEBUG
-        // }
+            for (let vertex in this._landgraph.vertices) {
+                // get hex by name
+                let hex = this.getAllTiles(t => t.name === vertex)[0];
+                viewLink(hex, this._landgraph.vertices[vertex]);
+            }
+            // END DEBUG
+        }
     }
 }

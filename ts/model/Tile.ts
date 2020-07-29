@@ -11,6 +11,11 @@ module CIV {
         public name: string;
         private _map: WorldMap;
 
+        /* TODO */
+        private _vertices: Array<Phaser.Geom.Point> = [];
+        private _edge: Array<{ from: Phaser.Geom.Point, to: Phaser.Geom.Point }> = [];
+
+
         /** The stuff that is currently on this tile - Can be one unit and one city for example*/
         private _onIt: IClickable[] = [];
         /** The index in the 'onIt' array of the stuff that is currently activated */

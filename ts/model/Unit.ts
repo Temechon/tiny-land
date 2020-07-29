@@ -13,7 +13,7 @@ module CIV {
     export class Unit extends Phaser.GameObjects.Image implements IClickable {
 
         /** The number of tile this unit can go through inone turn */
-        public range: number = 3;
+        public range: number = 5;
         /** The sprite displayed on each tile this unit can move to */
         private _moveRange: Array<{ tile: Tile, graphic: Phaser.GameObjects.Graphics }>;
         public currentTile: Tile;
