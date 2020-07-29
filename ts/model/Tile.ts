@@ -1,5 +1,7 @@
 module CIV {
 
+    export type Vertex = { coords: Phaser.Geom.Point, neighbours: number[] };
+
     export class Tile extends Phaser.GameObjects.Image {
 
         public type: TileType = TileType.Land;
@@ -11,9 +13,8 @@ module CIV {
         public name: string;
         private _map: WorldMap;
 
-        /* TODO */
-        private _vertices: Array<Phaser.Geom.Point> = [];
-        private _edge: Array<{ from: Phaser.Geom.Point, to: Phaser.Geom.Point }> = [];
+        /** Coordinates of each vertex of this tile */
+        private _vertices: Array<Vertex> = [];
 
 
         /** The stuff that is currently on this tile - Can be one unit and one city for example*/
@@ -41,7 +42,6 @@ module CIV {
             this.setInteractive();
 
             this.on('pointerdown', this.onPointerDown.bind(this));
-
         }
 
         public get position(): Phaser.Geom.Point {
@@ -57,8 +57,86 @@ module CIV {
             }
         }
 
-        public get isWater(): boolean {
+        get isWater(): boolean {
             return this.type === TileType.Water || this.type === TileType.DeepWater;
+        }
+
+        /**
+         * Returns true if the given vertex is shared with this tile
+         */
+        hasVertex(vex: Vertex): boolean {
+            for (let v of this._vertices) {
+                if (Phaser.Math.Distance.BetweenPointsSquared(vex.coords, v.coords) < 1) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /**
+         * Returns the vertex corresponding to the given vertex position for this tile, null if not found
+         */
+        getVertex(vex: Vertex): Vertex {
+            for (let v of this._vertices) {
+                if (Phaser.Math.Distance.BetweenPointsSquared(vex.coords, v.coords) < 1) {
+                    return v;
+                }
+            }
+            return null;
+        }
+
+        getRandomVertex(): Vertex {
+            return chance.pickone(this._vertices);
+        }
+        /**
+         * Returns the vertex corresponding to the given vertex position for this tile, null if not found
+         */
+        getVertexByIndex(index: number): Vertex {
+            return this._vertices[index]
+        }
+
+        /**
+         * Returns a random neighbour of the given vertex
+         */
+        getRandomNeighbourVertex(vex: Vertex): Vertex {
+            return this._vertices[chance.pickone(vex.neighbours)];
+        }
+
+        /**
+         * Returns all vertices shared with the given tile.
+         */
+        getVerticesSharedWith(tile: Tile): Array<Vertex> {
+            let otherVertices = tile._vertices;
+            let res: Vertex[] = [];
+            for (let v of this._vertices) {
+                for (let ov of otherVertices) {
+                    if (Phaser.Math.Distance.BetweenPointsSquared(v.coords, ov.coords) < 1) {
+                        res.push(ov);
+                    }
+                }
+            }
+            return res;
+        }
+
+        /**
+         * Store all vertices for this tile and its edge in memory, in order to draw rivers
+         */
+        computePointsAndEdges() {
+
+            let points = HexGrid.getPoints({
+                width: this.displayWidth,
+                height: this.displayHeight,
+                x: this.position.x,
+                y: this.position.y
+            });
+
+            for (let i = 0; i < points.length; i++) {
+                let p = points[i];
+                this._vertices.push({
+                    coords: p,
+                    neighbours: [(i - 1) < 0 ? points.length - 1 : i - 1, (i + 1) % points.length]
+                })
+            }
         }
 
         /**
@@ -105,6 +183,7 @@ module CIV {
 
         public onPointerDown() {
             console.log('tile selected!')
+
             // Deactivate all other tiles
             this._map.deactivateAllOtherTiles(this);
 

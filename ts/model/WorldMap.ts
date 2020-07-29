@@ -70,7 +70,7 @@ module CIV {
                 }
 
                 // Get the tile neighbors
-                let neighbours = this.grid.neighbors(t.q, t.r).map(obj => this.getTileByAxialCoords(obj.q, obj.r));
+                let neighbours = this.getNeighbours(t);
                 let waterNeighbours = neighbours.filter(tile => {
                     if (!tile) {
                         return false;
@@ -93,6 +93,103 @@ module CIV {
             this.scene.add.existing(this);
             this.x = (this.scene.game.config.width as number) / 2;
             this.y = (this.scene.game.config.height as number) / 2;
+
+            // Create rivers
+            this.doForAllTiles(t => true, t => t.computePointsAndEdges());
+
+            new River(this);
+
+            // // Get direction of water
+            // let waterFlow = new Phaser.Math.Vector2(
+            //     water.position.x - land.position.x,
+            //     water.position.y - land.position.y,
+            // );
+            // let angle = waterFlow.angle();
+            // if (angle === 0) {
+            //     console.log("EAST");
+            // } else if (angle < Math.PI / 2) {
+            //     console.log("SOUTH EAST !")
+            // } else if (angle < Math.PI) {
+            //     console.log("SOUTH WEST");
+            // } else if (angle < 3 * Math.PI / 2) {
+            //     console.log("NORTH WEST");
+            // } else {
+            //     console.log("NORTH EAST")
+            // }
+
+
+            // let river = [land];
+            // let riverVertex = [currentVertex];
+
+            // let isVertexInRiver = (vex: Vertex): boolean => {
+            //     for (let r of riverVertex) {
+            //         if (Phaser.Math.Distance.BetweenPointsSquared(r.coords, vex.coords) < 1) {
+            //             return true;
+            //         }
+            //     }
+            //     return false;
+            // }
+            // let nbOfTileInRiver = (tile: Tile): number => {
+            //     return river.filter(t => t.name === tile.name).length;
+            // }
+
+            // for (let i = 0; i < 20; i++) {
+            //     graphics.fillCircle(currentVertex.coords.x, currentVertex.coords.y, 10)
+
+            //     // Get all tiles not water near the current vertex
+            //     let neighbourhood = this.getNeighbours(land).filter(t => !t.isWater && t.hasVertex(currentVertex))
+            //     neighbourhood.push(land);
+            //     for (let n of neighbourhood) {
+            //         // n.setTint(0xff0000)
+            //     }
+
+            //     let nextTile = chance.pickone(neighbourhood);
+            //     // nextTile.setTint(0xffff00)
+
+            //     // Get the current vertex on the next tile
+            //     let nextVertex = nextTile.getVertex(currentVertex);
+            //     let nextVertexRandomNeighbours = chance.shuffle(nextVertex.neighbours);
+            //     let nextVertexNeighbour = nextTile.getVertexByIndex(nextVertexRandomNeighbours[0]);
+
+            //     // Get neighbourhodd of this vertex
+            //     neighbourhood = this.getNeighbours(nextTile).filter(t => !t.isWater && t.hasVertex(nextVertexNeighbour));
+
+
+
+
+            //     if (isVertexInRiver(nextVertexNeighbour)) {
+            //         nextVertexNeighbour = nextTile.getVertexByIndex(nextVertexRandomNeighbours[1]);
+            //     }
+
+            //     // neighbourhood = this.getNeighbours(nextTile).filter(t => !t.isWater && t.hasVertex(nextVertexNeighbour))
+
+
+            //     // // Get its neighbour
+            //     // let n1 = nextTile.getNeighbourVertex(nextVertex, 0);
+            //     // let n2 = nextTile.getNeighbourVertex(nextVertex, 1);
+            //     // let nextVertexNeighbour = n2
+            //     riverVertex.push(nextVertexNeighbour)
+
+            //     // Draw line between current vertex and next vertex
+            //     graphics.lineBetween(
+            //         currentVertex.coords.x, currentVertex.coords.y,
+            //         nextVertexNeighbour.coords.x, nextVertexNeighbour.coords.y
+            //     );
+
+            //     currentVertex = nextVertexNeighbour;
+            //     land = nextTile;
+
+            // }
+
+
+            // Get random vertex of this tile
+            // let vertex = land.randomVertex;
+            // graphics.fillCircle(vertex.coords.x, vertex.coords.y, 10)
+            // // Get a random neighbour tile that is not water
+            // let neighbour = chance.pickone(this.getNeighbours(land).filter(t => !t.isWater));
+            // neighbour.setTint(0xff00ff);
+            // // Find the same vertex of the selected one
+            // let vv = neighbour.findVertex(vertex);
         }
 
         /**
@@ -172,6 +269,13 @@ module CIV {
             this.doForAllTiles(t => t.name !== tile.name, t => t.deactivate());
         }
 
+        /**
+         * Return the list of neighbours of the given tile
+         */
+        getNeighbours(t: Tile): Array<Tile> {
+            return this.getTilesByAxialCoords(this.grid.neighbors(t.q, t.r));
+        }
+
 
         /** MANIPULATE TILES */
         /**
@@ -221,7 +325,7 @@ module CIV {
         /**
          * Returns all tile that satisfies the given predicate
          */
-        private getAllTiles(predicate: (t: Tile) => boolean): Array<Tile> {
+        public getAllTiles(predicate: (t: Tile) => boolean): Array<Tile> {
 
             let res = [];
 
