@@ -25,6 +25,14 @@ module CIV {
             this.player = new Tribe(chance.name());
 
             let map = new WorldMap(this);
+            this.cameras.main.zoom = 0.75
+
+            this.input.keyboard.on('keydown-' + 'W', () => {
+                this.cameras.main.zoom += 0.25
+            });
+            this.input.keyboard.on('keydown-' + 'X', () => {
+                this.cameras.main.zoom -= 0.25
+            });
 
 
             this.player.cities.push(map.setStartingCity(this.player));
@@ -34,6 +42,7 @@ module CIV {
             this.cameras.main.centerOn(startingCity.position.x, startingCity.position.y);
 
             startingCity.produceUnit();
+
         }
     }
 }

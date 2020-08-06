@@ -15,18 +15,8 @@ abstract class Constants {
                 octaves: 2,
                 frequency: 0.04
             },
-            THRESHOLD: 140 // [min; max] : Less is more water
+            THRESHOLD: 155 // [min; max] : Less is more water
         },
-        /** Noise parameters for high grass */
-        // HIGH_GRASS: {
-        //     NOISE: {
-        //         min: 0,
-        //         max: 255,
-        //         octaves: 8,
-        //         frequency: 0.05
-        //     },
-        //     THRESHOLD: 160 // [min; max] : Less is more medium grass
-        // },
         /** Noise parameters for forest */
         FOREST: {
             NOISE: {

@@ -2,6 +2,18 @@ module CIV {
 
     export class Helpers {
 
+
+        /**
+         * Returns the string to be used as a style to create a phaser text
+         * @param _size 
+         * @param _family 
+         */
+        public static font(_size: number, _family: string): string {
+            let px = _size * ratio;
+            return px + "px " + _family;
+        }
+
+
         /**
          * Returns the size (width/height) of the given container
          */

@@ -74,8 +74,8 @@ module CIV {
 
             Game.INSTANCE.add.tween({
                 targets: this,
-                x: tile.position.x,
-                y: tile.position.y,
+                x: tile.worldPosition.x,
+                y: tile.worldPosition.y,
                 duration: 150,
                 onComplete: () => {
                     this.state = UnitState.IDLE;

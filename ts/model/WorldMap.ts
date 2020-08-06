@@ -4,11 +4,19 @@ module CIV {
         /** All tiles of this map, indexed by hexagon XY coordinates. Hex(q, r) is at array[x=r+SIZE][y=q+SIZE]  */
         private _tiles: Array<Array<Tile>> = [];
 
+        /** The total number of tiles on this map */
+        nbTiles: number;
+
         /** The hex grid coordinates (q,r) */
         public grid: HexGrid;
 
         /** The walking graph for land units */
         private _landgraph: Graph;
+
+        private _resourceLayer: Phaser.GameObjects.Container;
+
+        /** All rivers on this map */
+        private _rivers: River[] = [];
 
         constructor(scene: Phaser.Scene) {
             super(scene);
@@ -18,7 +26,7 @@ module CIV {
             this._landgraph = new Graph();
 
             let mapCoords = this.grid.hexagon(0, 0, Constants.MAP.SIZE, true);
-
+            this.nbTiles = mapCoords.length;
 
             let noiseGen = new FastSimplexNoise(Constants.MAP.WATER.NOISE);
             let forestNoiseGen = new FastSimplexNoise(Constants.MAP.FOREST.NOISE);
@@ -58,6 +66,9 @@ module CIV {
                     tile.setTint(0xF8F6FC)
                     tile.type = TileType.Mountain;
                 }
+
+                // Set resources for this tile
+                Resource.setResources(tile);
             }
 
             // DEEPWATER - Only for tiles that are completely surrounded by water
@@ -97,99 +108,18 @@ module CIV {
             // Create rivers
             this.doForAllTiles(t => true, t => t.computePointsAndEdges());
 
-            new River(this);
+            for (let i = 0; i < this.nbTiles / 100; i++) {
+                let river = new River(this);
+                this._rivers.push(river);
+                for (let t of river.tiles) {
+                    t.hasRiver = true;
+                }
+            }
+            // Create resources for each tiles                        
+            // TODO replace this graphics by several sprites (one by resouces)
+            let resourcesGraphics = Game.INSTANCE.add.graphics();
+            this.doForAllTiles(t => true, t => t.drawResources(this._resourceLayer, resourcesGraphics))
 
-            // // Get direction of water
-            // let waterFlow = new Phaser.Math.Vector2(
-            //     water.position.x - land.position.x,
-            //     water.position.y - land.position.y,
-            // );
-            // let angle = waterFlow.angle();
-            // if (angle === 0) {
-            //     console.log("EAST");
-            // } else if (angle < Math.PI / 2) {
-            //     console.log("SOUTH EAST !")
-            // } else if (angle < Math.PI) {
-            //     console.log("SOUTH WEST");
-            // } else if (angle < 3 * Math.PI / 2) {
-            //     console.log("NORTH WEST");
-            // } else {
-            //     console.log("NORTH EAST")
-            // }
-
-
-            // let river = [land];
-            // let riverVertex = [currentVertex];
-
-            // let isVertexInRiver = (vex: Vertex): boolean => {
-            //     for (let r of riverVertex) {
-            //         if (Phaser.Math.Distance.BetweenPointsSquared(r.coords, vex.coords) < 1) {
-            //             return true;
-            //         }
-            //     }
-            //     return false;
-            // }
-            // let nbOfTileInRiver = (tile: Tile): number => {
-            //     return river.filter(t => t.name === tile.name).length;
-            // }
-
-            // for (let i = 0; i < 20; i++) {
-            //     graphics.fillCircle(currentVertex.coords.x, currentVertex.coords.y, 10)
-
-            //     // Get all tiles not water near the current vertex
-            //     let neighbourhood = this.getNeighbours(land).filter(t => !t.isWater && t.hasVertex(currentVertex))
-            //     neighbourhood.push(land);
-            //     for (let n of neighbourhood) {
-            //         // n.setTint(0xff0000)
-            //     }
-
-            //     let nextTile = chance.pickone(neighbourhood);
-            //     // nextTile.setTint(0xffff00)
-
-            //     // Get the current vertex on the next tile
-            //     let nextVertex = nextTile.getVertex(currentVertex);
-            //     let nextVertexRandomNeighbours = chance.shuffle(nextVertex.neighbours);
-            //     let nextVertexNeighbour = nextTile.getVertexByIndex(nextVertexRandomNeighbours[0]);
-
-            //     // Get neighbourhodd of this vertex
-            //     neighbourhood = this.getNeighbours(nextTile).filter(t => !t.isWater && t.hasVertex(nextVertexNeighbour));
-
-
-
-
-            //     if (isVertexInRiver(nextVertexNeighbour)) {
-            //         nextVertexNeighbour = nextTile.getVertexByIndex(nextVertexRandomNeighbours[1]);
-            //     }
-
-            //     // neighbourhood = this.getNeighbours(nextTile).filter(t => !t.isWater && t.hasVertex(nextVertexNeighbour))
-
-
-            //     // // Get its neighbour
-            //     // let n1 = nextTile.getNeighbourVertex(nextVertex, 0);
-            //     // let n2 = nextTile.getNeighbourVertex(nextVertex, 1);
-            //     // let nextVertexNeighbour = n2
-            //     riverVertex.push(nextVertexNeighbour)
-
-            //     // Draw line between current vertex and next vertex
-            //     graphics.lineBetween(
-            //         currentVertex.coords.x, currentVertex.coords.y,
-            //         nextVertexNeighbour.coords.x, nextVertexNeighbour.coords.y
-            //     );
-
-            //     currentVertex = nextVertexNeighbour;
-            //     land = nextTile;
-
-            // }
-
-
-            // Get random vertex of this tile
-            // let vertex = land.randomVertex;
-            // graphics.fillCircle(vertex.coords.x, vertex.coords.y, 10)
-            // // Get a random neighbour tile that is not water
-            // let neighbour = chance.pickone(this.getNeighbours(land).filter(t => !t.isWater));
-            // neighbour.setTint(0xff00ff);
-            // // Find the same vertex of the selected one
-            // let vv = neighbour.findVertex(vertex);
         }
 
         /**
@@ -233,6 +163,7 @@ module CIV {
         public getMoveRange(config: { from: Tile; range: number; }): Array<{ tile: Tile, graphic: Phaser.GameObjects.Graphics }> {
             let res: Array<{ tile: Tile, graphic: Phaser.GameObjects.Graphics }> = [];
             let range: Tile[] = [];
+
             for (let i = config.range; i >= 1; i--) {
                 range.push(...this.getTilesByAxialCoords(this.grid.ring(config.from.q, config.from.r, i)))
             }
@@ -246,9 +177,9 @@ module CIV {
                     continue;
                 }
 
-                let path = this._landgraph.shortestPath(config.from.name, n.name);
-                console.log(path.length);
-                if (path.length <= 1 || path.length > config.range + 1) {
+                // let path = this._landgraph.shortestPath(config.from.name, n.name);
+                let path = HexGrid.axialDistance(config.from.q, config.from.r, n.q, n.r)
+                if (path > config.range + 1) {
                     continue;
                 }
 
@@ -258,7 +189,6 @@ module CIV {
                     graphic: n.getHexPrint(0xff0000)
                 });
             }
-
             return res;
         }
 
@@ -407,10 +337,10 @@ module CIV {
                 for (let n in neighbors) {
                     graphics.beginPath();
 
-                    graphics.moveTo(tile.position.x, tile.position.y);
+                    graphics.moveTo(tile.worldPosition.x, tile.worldPosition.y);
                     // get hex by name
                     let hexn = this.getAllTiles(t => t.name === n)[0];
-                    let pos = hexn.position;
+                    let pos = hexn.worldPosition;
                     graphics.lineTo(pos.x, pos.y);;
 
                     graphics.closePath()

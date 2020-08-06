@@ -45,8 +45,8 @@ module CIV {
         public produceUnit() {
             let unit = new Unit({
                 scene: Game.INSTANCE,
-                x: this._tile.position.x,
-                y: this._tile.position.y,
+                x: this._tile.worldPosition.x,
+                y: this._tile.worldPosition.y,
                 key: 'warrior',
                 map: this.worldmap,
                 tile: this._tile

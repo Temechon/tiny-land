@@ -3,33 +3,91 @@ module CIV {
 
         private map: WorldMap;
 
+        /** Tile that are close to a river (at least two vertices in common) */
+        tiles: Tile[] = [];
+
+        /** The list of points the river go through */
+        vertices: Phaser.Geom.Point[] = [];
+
         constructor(map: WorldMap) {
             this.map = map;
-
             this.draw();
         }
 
+
+
         draw() {
-
-
             let graphics = Game.INSTANCE.add.graphics();
-            graphics.fillStyle(0xff0000);
-            graphics.lineStyle(5, 0xff0000);
+            graphics.fillStyle(0x1B618C);
+            graphics.lineStyle(20, 0x1B618C);
 
-            let river = this.setStartingPosition();
-            river.start.setTint(0x00ff00);
-            river.end.setTint(0x00ffff);
+            let river = this.setStartingPosition({ min: 4, max: 10 });
 
-            // Starting point of the river, between water and land
+            // Starting point of the river
             let currentVertex = river.start.getRandomVertex();
-            graphics.fillCircle(currentVertex.coords.x, currentVertex.coords.y, 10)
+            this.vertices.push(currentVertex.coords);
 
+            // Get all tiles th river will go through
+            let tiles: Tile[] = null;
+            while (!tiles) {
+                tiles = this.getTilesOfRiver(river.start, river.end);
+            }
 
+            // Compute river vertices and draw edges
+            for (let i = 0; i < tiles.length - 1; i++) {
+                let tile = tiles[i];
+                let nextTile = tiles[i + 1];
+                // Find the closest common vertex to the current vertex
+                let v = this.getClosestTo(currentVertex, tile.getVerticesSharedWith(nextTile));
+
+                let vertices = tile.drawShortestEdgePath(currentVertex, v, graphics);
+                vertices.shift();
+                this.vertices.push(...vertices.map(vex => vex.coords))
+
+                currentVertex = nextTile.getVertex(v);
+            }
+
+            // Get all neighbours of all river tiles that are not water and not already in the neighbourhood
+            // including the river tiles
+            let neighbourshood: Tile[] = [];
+            for (let tile of tiles) {
+                let neighbours = this.map.getNeighbours(tile);
+                neighbourshood.push(...neighbours.filter(t => !t.isWater && !this.isInRiver(t, neighbourshood)));
+            }
+
+            // Get all tiles from the neighbourhood that have a common vertex with the river
+            let res = []
+            for (let v of this.vertices) {
+                // Get all tiles from the neighbourhood that has this vertices
+                res.push(...neighbourshood.filter(n => n.hasVertexAsPoint(v) && !this.isInRiver(n, res)))
+            }
+
+            // Kepp only tiles that have at least two common vertices with the river
+            for (let r = 0; r < res.length; r++) {
+                let tile = res[r];
+                let nbOfVertices = this.vertices.filter(p => tile.hasVertexAsPoint(p)).length;
+                if (nbOfVertices <= 1) {
+                    res.splice(r, 1);
+                    r--;
+                }
+            }
+            this.tiles = res;
         }
 
-        setStartingPosition(): { start: Tile, end: Tile } {
+        getClosestTo(vex: Vertex, vertices: Vertex[]): Vertex {
+            let min = Number.MAX_VALUE, closest: Vertex = null;
+            for (let v of vertices) {
+                let dist = Phaser.Math.Distance.BetweenPointsSquared(vex.coords, v.coords);
+                if (dist < min) {
+                    min = dist;
+                    closest = v;
+                }
+            }
+            return closest;
+        }
+
+        setStartingPosition(config: { min: number, max: number }): { start: Tile, end: Tile } {
             // Get one random tile of land near water
-            let riverLength = 0;
             let land;
             while (true) {
 
@@ -42,20 +100,20 @@ module CIV {
                     })
                 );
                 // Get the nearest water tile
-
                 let water = this.getClosestWaterTile(land);
-                if (water.distance < 3 || water.distance > 5) {
+                if (water.distance < config.min || water.distance > config.max) {
                     continue;
                 }
-
                 return {
                     start: land,
                     end: water.tile
                 }
-
             }
         }
 
+        /**
+         * Returns the water tile the closest to the given tile
+         */
         getClosestWaterTile(tile: Tile): { distance: number, tile: Tile } {
             let distance = 1
             while (true) {
@@ -66,6 +124,43 @@ module CIV {
                 }
                 return { distance: distance, tile: chance.pickone(waterTiles) };
             }
+        }
+
+        isInRiver(t: Tile, river: Tile[]): boolean {
+            return river.filter(tt => tt.equals(t)).length > 0
+        }
+
+        getTilesOfRiver(from: Tile, to: Tile): Array<Tile> {
+            let res = [from];
+            let start = from;
+
+            while (true) {
+                let neighbours = this.map.getNeighbours(start);
+                // Get a random neighbors where the axial distnce is less or equal than the current dist
+                let dist = HexGrid.axialDistance(start.q, start.r, to.q, to.r);
+
+                // Distace = 1 => river is finished
+                if (dist === 1) {
+                    break;
+                }
+
+                let possiblePicks = neighbours.filter(t =>
+                    HexGrid.axialDistance(t.q, t.r, to.q, to.r) < dist &&
+                    !t.isWater &&
+                    !this.isInRiver(t, res));
+
+                //If no possible pick, the river cannot be finished
+                if (possiblePicks.length === 0) {
+                    return null;
+                }
+
+                let selected = chance.pickone(possiblePicks);
+
+                res.push(selected)
+                start = selected;
+            }
+            res.push(to);
+            return res;
         }
 
     }

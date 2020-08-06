@@ -6,6 +6,11 @@ module CIV {
 
         public type: TileType = TileType.Land;
 
+        /** All resources that can be found on this tile */
+        public resources: number[] = [];
+
+        public hasRiver: boolean = false;
+
         /** Row number */
         public r: number;
         /** Column number */
@@ -15,7 +20,6 @@ module CIV {
 
         /** Coordinates of each vertex of this tile */
         private _vertices: Array<Vertex> = [];
-
 
         /** The stuff that is currently on this tile - Can be one unit and one city for example*/
         private _onIt: IClickable[] = [];
@@ -42,15 +46,16 @@ module CIV {
             this.setInteractive();
 
             this.on('pointerdown', this.onPointerDown.bind(this));
+
         }
 
-        public get position(): Phaser.Geom.Point {
+        get worldPosition(): Phaser.Geom.Point {
             let x = this.parentContainer.x + this.x;
             let y = this.parentContainer.y + this.y;
             return new Phaser.Geom.Point(x, y);
         }
 
-        public getStorageXY(): { x: number, y: number } {
+        getStorageXY(): { x: number, y: number } {
             return {
                 x: this.r + Constants.MAP.SIZE,
                 y: this.q + Constants.MAP.SIZE
@@ -66,7 +71,16 @@ module CIV {
          */
         hasVertex(vex: Vertex): boolean {
             for (let v of this._vertices) {
-                if (Phaser.Math.Distance.BetweenPointsSquared(vex.coords, v.coords) < 1) {
+                if (Phaser.Math.Distance.BetweenPointsSquared(vex.coords, v.coords) < 4 * ratio) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        hasVertexAsPoint(p: Phaser.Geom.Point): boolean {
+            for (let v of this._vertices) {
+                if (Phaser.Math.Distance.BetweenPointsSquared(p, v.coords) < 4 * ratio) {
                     return true;
                 }
             }
@@ -78,7 +92,7 @@ module CIV {
          */
         getVertex(vex: Vertex): Vertex {
             for (let v of this._vertices) {
-                if (Phaser.Math.Distance.BetweenPointsSquared(vex.coords, v.coords) < 1) {
+                if (Phaser.Math.Distance.BetweenPointsSquared(vex.coords, v.coords) < 4 * ratio) {
                     return v;
                 }
             }
@@ -88,20 +102,73 @@ module CIV {
         getRandomVertex(): Vertex {
             return chance.pickone(this._vertices);
         }
-        /**
-         * Returns the vertex corresponding to the given vertex position for this tile, null if not found
-         */
-        getVertexByIndex(index: number): Vertex {
-            return this._vertices[index]
+
+
+        drawResources(container: Phaser.GameObjects.Container, graphics: Phaser.GameObjects.Graphics) {
+            let positions: Phaser.Types.Math.Vector2Like[] = [];
+            let nbResources = this.resources.filter(r => r !== 0).length
+            let p1, p2, p3;
+            let delta = 25 * ratio;
+
+            switch (nbResources) {
+                case 1:
+                    positions = [this.worldPosition];
+                    break;
+                case 2:
+                    p1 = this.worldPosition;
+                    p2 = this.worldPosition;
+                    p1.y -= delta;
+                    p2.y += delta;
+                    positions = [p1, p2]
+                    break;
+                case 3:
+
+                    p1 = this.worldPosition;
+                    p2 = this.worldPosition;
+                    p3 = this.worldPosition;
+                    p1.x -= delta;
+                    p1.y -= delta;
+                    p2.x += delta;
+                    p2.y -= delta;
+                    p3.y += delta;
+                    positions = [
+                        p1, p2, p3
+                    ]
+                    break;
+
+            }
+
+            let p = 0;
+            for (let type = 0; type < this.resources.length; type++) {
+                let r = this.resources[type];
+                if (r !== 0) {
+                    this._drawResource(type, r, positions[p++], graphics);
+                }
+            }
         }
 
-        /**
-         * Returns a random neighbour of the given vertex
-         */
-        getRandomNeighbourVertex(vex: Vertex): Vertex {
-            return this._vertices[chance.pickone(vex.neighbours)];
+        _drawResource(type: ResourceType, nb: number, p: Phaser.Types.Math.Vector2Like, graphic: Phaser.GameObjects.Graphics) {
+            if (type === ResourceType.Gold) {
+                graphic.fillStyle(0xffff00);
+            }
+            if (type === ResourceType.Food) {
+                graphic.fillStyle(0xff0000);
+            }
+            if (type === ResourceType.Research) {
+                graphic.fillStyle(0x0000ff);
+            }
+            Game.INSTANCE.add.text(
+                p.x,
+                p.y,
+                nb.toString(),
+                {
+                    fontSize: Helpers.font(30, 'Arial'),
+                    color: "#fff",
+                    stroke: '#000',
+                    strokeThickness: 2,
+                })
+            graphic.fillCircle(p.x, p.y, 15 * ratio);
         }
-
         /**
          * Returns all vertices shared with the given tile.
          */
@@ -110,8 +177,8 @@ module CIV {
             let res: Vertex[] = [];
             for (let v of this._vertices) {
                 for (let ov of otherVertices) {
-                    if (Phaser.Math.Distance.BetweenPointsSquared(v.coords, ov.coords) < 1) {
-                        res.push(ov);
+                    if (Phaser.Math.Distance.BetweenPointsSquared(v.coords, ov.coords) < 4 * ratio) {
+                        res.push(v);
                     }
                 }
             }
@@ -126,8 +193,8 @@ module CIV {
             let points = HexGrid.getPoints({
                 width: this.displayWidth,
                 height: this.displayHeight,
-                x: this.position.x,
-                y: this.position.y
+                x: this.worldPosition.x,
+                y: this.worldPosition.y
             });
 
             for (let i = 0; i < points.length; i++) {
@@ -145,7 +212,7 @@ module CIV {
          */
         public getHexPrint(color: number): Phaser.GameObjects.Graphics {
 
-            let radius = Game.INSTANCE.make.graphics({ x: this.position.x, y: this.position.y });
+            let radius = Game.INSTANCE.make.graphics({ x: this.worldPosition.x, y: this.worldPosition.y });
             radius.fillStyle(color, 1.0);
             radius.beginPath();
             radius.scale = ratio;
@@ -241,6 +308,55 @@ module CIV {
             return this._onIt.filter(s => s instanceof Unit).length > 0;
         }
 
+        /**
+         * Draw the path from the 'from' vertex, to the 'to' vertex. Returns the list of vertex use to draw this path, including 'from' and 'to'
+         */
+        drawShortestEdgePath(from: Vertex, to: Vertex, graphics: Phaser.GameObjects.Graphics): Vertex[] {
+            let path = this.getShortestEdgePath(from, to);
+
+            for (let v = 0; v < path.length - 1; v++) {
+                let vex = path[v];
+                let vevex = path[v + 1]
+                graphics.lineBetween(vex.coords.x, vex.coords.y, vevex.coords.x, vevex.coords.y);
+            }
+            return path;
+        }
+
+        getShortestEdgePath(from: Vertex, to: Vertex): Vertex[] {
+            let dir1 = this._getEdgesPath(from, to, 0);
+            let dir2 = this._getEdgesPath(from, to, 1);
+
+            if (dir1.length < dir2.length) {
+                return dir1;
+            }
+            return dir2;
+        }
+
+        /**
+         * Includes from and to in the result array
+         */
+        private _getEdgesPath(from: Vertex, to: Vertex, dir: number): Vertex[] {
+            let res = [from];
+            let start = from;
+
+            if (from === to) {
+                return [];
+            }
+            for (let v = 0; v < this._vertices.length; v++) {
+                let neighbour = this._vertices[start.neighbours[dir]];
+                res.push(neighbour);
+                if (neighbour === to) {
+                    break;
+                }
+                start = neighbour;
+            }
+
+            return res;
+        }
+
+        equals(other: Tile) {
+            return this.q === other.q && this.r === other.r;
+        }
     }
 
 }
