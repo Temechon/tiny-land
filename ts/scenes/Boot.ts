@@ -17,6 +17,10 @@ module CIV {
             this.load.image('hex', 'assets/hex.png');
             this.load.image('city', 'assets/city.png');
             this.load.image('warrior', 'assets/warrior.png');
+
+            this.load.image('food', 'assets/resources/food.png');
+            this.load.image('gold', 'assets/resources/gold.png');
+            this.load.image('research', 'assets/resources/research.png');
         }
 
         create() {

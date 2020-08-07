@@ -104,7 +104,7 @@ module CIV {
         }
 
 
-        drawResources(container: Phaser.GameObjects.Container, graphics: Phaser.GameObjects.Graphics) {
+        drawResources(container: Phaser.GameObjects.Container) {
             let positions: Phaser.Types.Math.Vector2Like[] = [];
             let nbResources = this.resources.filter(r => r !== 0).length
             let p1, p2, p3;
@@ -142,22 +142,28 @@ module CIV {
             for (let type = 0; type < this.resources.length; type++) {
                 let r = this.resources[type];
                 if (r !== 0) {
-                    this._drawResource(type, r, positions[p++], graphics);
+                    this._drawResource(type, r, positions[p++], container);
                 }
             }
         }
 
-        _drawResource(type: ResourceType, nb: number, p: Phaser.Types.Math.Vector2Like, graphic: Phaser.GameObjects.Graphics) {
+        _drawResource(type: ResourceType, nb: number, p: Phaser.Types.Math.Vector2Like, container: Phaser.GameObjects.Container) {
             if (type === ResourceType.Gold) {
-                graphic.fillStyle(0xffff00);
+                let s = Game.INSTANCE.add.image(p.x, p.y, 'gold');
+                s.scale = ratio;
+                container.add(s);
             }
             if (type === ResourceType.Food) {
-                graphic.fillStyle(0xff0000);
+                let s = Game.INSTANCE.add.image(p.x, p.y, 'food');
+                s.scale = ratio;
+                container.add(s);
             }
             if (type === ResourceType.Research) {
-                graphic.fillStyle(0x0000ff);
+                let s = Game.INSTANCE.add.image(p.x, p.y, 'research');
+                s.scale = ratio;
+                container.add(s);
             }
-            Game.INSTANCE.add.text(
+            let text = Game.INSTANCE.add.text(
                 p.x,
                 p.y,
                 nb.toString(),
@@ -165,9 +171,9 @@ module CIV {
                     fontSize: Helpers.font(30, 'Arial'),
                     color: "#fff",
                     stroke: '#000',
-                    strokeThickness: 2,
+                    strokeThickness: 5,
                 })
-            graphic.fillCircle(p.x, p.y, 15 * ratio);
+            container.add(text);
         }
         /**
          * Returns all vertices shared with the given tile.

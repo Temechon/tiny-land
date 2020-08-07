@@ -13,7 +13,7 @@ module CIV {
         /** The walking graph for land units */
         private _landgraph: Graph;
 
-        private _resourceLayer: Phaser.GameObjects.Container;
+        private _resourceLayer: Phaser.GameObjects.RenderTexture;
 
         /** All rivers on this map */
         private _rivers: River[] = [];
@@ -115,11 +115,22 @@ module CIV {
                     t.hasRiver = true;
                 }
             }
-            // Create resources for each tiles                        
-            // TODO replace this graphics by several sprites (one by resouces)
-            let resourcesGraphics = Game.INSTANCE.add.graphics();
-            this.doForAllTiles(t => true, t => t.drawResources(this._resourceLayer, resourcesGraphics))
+            // Create resources for each tiles                       
+            // let container = Game.INSTANCE.add.container();
+            // this.doForAllTiles(t => true, t => t.drawResources(container))
+            // let b = this.getBounds()
+            // this._resourceLayer = Game.INSTANCE.add.renderTexture(b.left, b.top,
+            //     b.width, b.height)
 
+            // // let g = Game.INSTANCE.make.graphics({ x: 0, y: 0 });
+            // // g.fillStyle(0xff0000);
+            // // g.fillCircle(0, 0, 50);
+            // // g.fillStyle(0xffffff, 0.5);
+            // // g.fillRect(0, 0, b.width, b.height)
+            // // this._resourceLayer.draw(g)
+
+            // this._resourceLayer.draw(container, -b.left, -b.top)
+            // container.destroy();
         }
 
         /**

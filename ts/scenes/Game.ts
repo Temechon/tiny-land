@@ -39,7 +39,7 @@ module CIV {
 
             //this.cameras.main.zoom = 0.8; 
             let startingCity = this.player.cities[0];
-            this.cameras.main.centerOn(startingCity.position.x, startingCity.position.y);
+            // this.cameras.main.centerOn(startingCity.position.x, startingCity.position.y);
 
             startingCity.produceUnit();
 

@@ -95,6 +95,8 @@ module CIV {
 
 
             let size = Helpers.getSize(container, this._tile.displayWidth, this._tile.displayHeight);
+            console.log("SIZE", container.getBounds());
+
 
             let rt = Game.INSTANCE.add.renderTexture(this.position.x, this.position.y, size.width * 2, size.height * 2)
             rt.setOrigin(0.5, 0.5);
