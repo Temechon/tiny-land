@@ -13,7 +13,8 @@ module CIV {
         /** The walking graph for land units */
         private _landgraph: Graph;
 
-        private _resourceLayer: Phaser.GameObjects.RenderTexture;
+        /** the texture where resources from ll visible tiles will be drawn */
+        resourceLayer: Phaser.GameObjects.RenderTexture;
 
         /** All rivers on this map */
         private _rivers: River[] = [];
@@ -114,29 +115,47 @@ module CIV {
                 for (let t of river.tiles) {
                     t.hasRiver = true;
                 }
+                this.add(river.graphics);
             }
-            // Create resources for each tiles                       
-            // let container = Game.INSTANCE.add.container();
-            // this.doForAllTiles(t => true, t => t.drawResources(container))
-            // let b = this.getBounds()
-            // this._resourceLayer = Game.INSTANCE.add.renderTexture(b.left, b.top,
-            //     b.width, b.height)
+            // Create resources for each tiles   
+            this.updateResourceLayer();
+        }
 
-            // // let g = Game.INSTANCE.make.graphics({ x: 0, y: 0 });
-            // // g.fillStyle(0xff0000);
-            // // g.fillCircle(0, 0, 50);
-            // // g.fillStyle(0xffffff, 0.5);
-            // // g.fillRect(0, 0, b.width, b.height)
-            // // this._resourceLayer.draw(g)
+        /**
+         * Draw the texture with all resources from all tiles on it.
+         */
+        updateResourceLayer() {
+            if (this.resourceLayer) {
+                this.resourceLayer.destroy();
+            }
 
-            // this._resourceLayer.draw(container, -b.left, -b.top)
-            // container.destroy();
+            console.time("resource drawing")
+            let container = Game.INSTANCE.make.container({ x: 0, y: 0 });
+            this.doForAllTiles(t => true, t => t.drawResources(container))
+            let b = this.getBounds()
+            this.resourceLayer = Game.INSTANCE.add.renderTexture(b.left, b.top,
+                b.width, b.height)
+            this.resourceLayer.depth = 3;
+
+            // let g = Game.INSTANCE.make.graphics({ x: 0, y: 0 });
+            // g.fillStyle(0xff0000);
+            // g.fillCircle(0, 0, 50);
+            // g.fillStyle(0xffffff, 0.5);
+            // g.fillRect(0, 0, b.width, b.height)
+            // this._resourceLayer.draw(g)
+
+            this.resourceLayer.draw(container, -b.left, -b.top)
+            container.destroy();
+            // this._resourceLayer.x = -b.width / 2
+            // this._resourceLayer.y = -b.height / 2;
+            // this.add(this._resourceLayer);
+            console.timeEnd("resource drawing")
         }
 
         /**
          * A starting city is a random land tile
          */
-        public setStartingCity(tribe: Tribe): City {
+        public getSartingTile(): Tile {
             let allLandTiles = this.getAllTiles(t => t.type === TileType.Land);
 
             let viableLocationFound = false;
@@ -158,14 +177,7 @@ module CIV {
                 }
             }
 
-            let city = new City({
-                scene: this.scene,
-                tile: startingTile,
-                worldmap: this,
-                tribe: tribe
-            });
-
-            return city;
+            return startingTile;
         }
 
         /**

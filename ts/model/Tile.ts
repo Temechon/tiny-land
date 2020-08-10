@@ -6,7 +6,7 @@ module CIV {
 
         public type: TileType = TileType.Land;
 
-        /** All resources that can be found on this tile */
+        /** All resources that can be found on this tile. Index: Resource type, value : number of this type */
         public resources: number[] = [];
 
         public hasRiver: boolean = false;
@@ -148,32 +148,14 @@ module CIV {
         }
 
         _drawResource(type: ResourceType, nb: number, p: Phaser.Types.Math.Vector2Like, container: Phaser.GameObjects.Container) {
-            if (type === ResourceType.Gold) {
-                let s = Game.INSTANCE.add.image(p.x, p.y, 'gold');
-                s.scale = ratio;
-                container.add(s);
-            }
-            if (type === ResourceType.Food) {
-                let s = Game.INSTANCE.add.image(p.x, p.y, 'food');
-                s.scale = ratio;
-                container.add(s);
-            }
-            if (type === ResourceType.Research) {
-                let s = Game.INSTANCE.add.image(p.x, p.y, 'research');
-                s.scale = ratio;
-                container.add(s);
-            }
-            let text = Game.INSTANCE.add.text(
-                p.x,
-                p.y,
-                nb.toString(),
-                {
-                    fontSize: Helpers.font(30, 'Arial'),
-                    color: "#fff",
-                    stroke: '#000',
-                    strokeThickness: 5,
-                })
-            container.add(text);
+            let keys = ['gold', 'food', 'research'];
+            let nbKeys = ['one', 'two', 'three', 'four', 'five'];
+            let s = Game.INSTANCE.add.image(p.x, p.y, keys[type]);
+            s.scale = ratio;
+            container.add(s);
+            let nbSprite = Game.INSTANCE.add.image(p.x + 15 * ratio, p.y + 15 * ratio, nbKeys[nb]);
+            nbSprite.scale = ratio;
+            container.add(nbSprite);
         }
         /**
          * Returns all vertices shared with the given tile.
@@ -199,8 +181,8 @@ module CIV {
             let points = HexGrid.getPoints({
                 width: this.displayWidth,
                 height: this.displayHeight,
-                x: this.worldPosition.x,
-                y: this.worldPosition.y
+                x: this.x,
+                y: this.y
             });
 
             for (let i = 0; i < points.length; i++) {

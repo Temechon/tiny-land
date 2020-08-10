@@ -9,6 +9,9 @@ module CIV {
         /** The list of points the river go through */
         vertices: Phaser.Geom.Point[] = [];
 
+        /** The grahics where the river is drawn */
+        graphics: Phaser.GameObjects.Graphics;
+
         constructor(map: WorldMap) {
             this.map = map;
             this.draw();
@@ -17,7 +20,11 @@ module CIV {
 
 
         draw() {
-            let graphics = Game.INSTANCE.add.graphics();
+            if (this.graphics) {
+                this.graphics.clear();
+                this.graphics.destroy();
+            }
+            this.graphics = Game.INSTANCE.add.graphics();
 
             let river = this.setStartingPosition({ min: 4, max: 10 });
 
@@ -48,16 +55,16 @@ module CIV {
             // Draw the river as Beziers curves
             let path = new Phaser.Curves.Path(this.vertices[0].x, this.vertices[0].y);
             let points = this.vertices.map(p => new Phaser.Math.Vector2(p.x, p.y))
-            points.push(new Phaser.Math.Vector2(river.end.worldPosition.x, river.end.worldPosition.y));
+            points.push(new Phaser.Math.Vector2(river.end.x, river.end.y));
             path.splineTo(points);
-            graphics.lineStyle(30 * ratio, 0x134C73);
-            path.draw(graphics);
+            this.graphics.lineStyle(30 * ratio, 0x134C73);
+            path.draw(this.graphics);
 
             path = new Phaser.Curves.Path(this.vertices[0].x, this.vertices[0].y);
             points = this.vertices.map(p => new Phaser.Math.Vector2(p.x, p.y))
             path.splineTo(points);
-            graphics.lineStyle(8 * ratio, 0x165682);
-            path.draw(graphics);
+            this.graphics.lineStyle(8 * ratio, 0x165682);
+            path.draw(this.graphics);
 
             // Get all neighbours of all river tiles that are not water and not already in the neighbourhood
             // including the river tiles

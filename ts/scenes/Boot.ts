@@ -21,6 +21,12 @@ module CIV {
             this.load.image('food', 'assets/resources/food.png');
             this.load.image('gold', 'assets/resources/gold.png');
             this.load.image('research', 'assets/resources/research.png');
+
+            this.load.image('one', 'assets/resources/one.png');
+            this.load.image('two', 'assets/resources/two.png');
+            this.load.image('three', 'assets/resources/three.png');
+            this.load.image('four', 'assets/resources/four.png');
+            this.load.image('five', 'assets/resources/five.png');
         }
 
         create() {
