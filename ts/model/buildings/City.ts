@@ -27,10 +27,12 @@ module CIV {
             let cityImage = Game.INSTANCE.make.image({
                 x: this._tile.worldPosition.x,
                 y: this._tile.worldPosition.y,
-                key: 'city'
+                key: 'city',
+                add: false
             });
 
             cityImage.scale = ratio;
+            this.depth = Constants.LAYER.TRIBE.CITY;
             this.add(cityImage)
 
             // Draw its influence area
@@ -49,20 +51,17 @@ module CIV {
                 y: this._tile.worldPosition.y,
                 key: 'warrior',
                 map: this.worldmap,
-                tile: this._tile
+                tile: this._tile,
+                tribe: this._tribe
             });
-            Game.INSTANCE.add.existing(unit);
+            this._tribe.units.push(unit);
+            this._tribe.add(unit);
         }
 
-        getProduction(): number[] {
-            let res = [];
-            res[ResourceType.Gold] = 0;
-            res[ResourceType.Food] = 0;
-            res[ResourceType.Research] = 0;
+        getProductionOf(type: ResourceType): number {
+            let res = 0;
             for (let t of this._influenceTiles) {
-                res[ResourceType.Gold] += t.resources[ResourceType.Gold];
-                res[ResourceType.Food] += t.resources[ResourceType.Food];
-                res[ResourceType.Research] += t.resources[ResourceType.Research];
+                res += t.resources[type];
             }
 
             return res;
@@ -91,7 +90,7 @@ module CIV {
             // TODO Filter hex fron tome influence radius that are in another city
 
             // Create a container that contains all hex to draw
-            let container = Game.INSTANCE.make.container({ x: this._tile.worldPosition.x, y: this._tile.worldPosition.y })//.setVisible(false);
+            let container = Game.INSTANCE.make.container({ x: this._tile.worldPosition.x, y: this._tile.worldPosition.y, add: false })//.setVisible(false);
 
             let mask = Game.INSTANCE.make.container({ x: this._tile.worldPosition.x, y: this._tile.worldPosition.y, add: false });
 
@@ -116,7 +115,7 @@ module CIV {
             console.log("SIZE", container.getBounds());
 
 
-            let rt = Game.INSTANCE.add.renderTexture(this._tile.worldPosition.x, this._tile.worldPosition.y, size.width * 2, size.height * 2)
+            let rt = Game.INSTANCE.make.renderTexture({ x: this._tile.worldPosition.x, y: this._tile.worldPosition.y, width: size.width * 2, height: size.height * 2 })
             rt.setOrigin(0.5, 0.5);
             rt.draw(container, size.width, size.height)
             container.iterate(c => c.destroy());
@@ -132,8 +131,15 @@ module CIV {
         activate() {
             // TODO Display the build menu
             console.log("CITY ACTIVATED");
-
         }
+
+        /**
+        * The vision of this city is the set of hex in this influence zone
+        */
+        getVision(): Array<Tile> {
+            return this._influenceTiles;
+        }
+
         deactivate() {
             // TODO Remove the build menu
             console.log("CITY DEACTIVATED");

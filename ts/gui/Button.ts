@@ -100,6 +100,12 @@ module CIV {
             this.y = this.options.y || 0;
         }
 
+        get label(): string {
+            return this._text.text;
+        }
+        set label(label: string) {
+            this._text.text = label;
+        }
 
         public build() {
 

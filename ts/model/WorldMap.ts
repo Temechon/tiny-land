@@ -14,7 +14,7 @@ module CIV {
         private _landgraph: Graph;
 
         /** the texture where resources from ll visible tiles will be drawn */
-        resourceLayer: Phaser.GameObjects.RenderTexture;
+        resourceLayer: Phaser.GameObjects.Container;
 
         /** All rivers on this map */
         private _rivers: River[] = [];
@@ -101,13 +101,13 @@ module CIV {
                 this.addTileToGraph(t);
             }
 
-
+            this.depth = Constants.LAYER.MAP;
             this.scene.add.existing(this);
             this.x = (this.scene.game.config.width as number) / 2;
             this.y = (this.scene.game.config.height as number) / 2;
 
             // Create rivers
-            this.doForAllTiles(t => true, t => t.computePointsAndEdges());
+            this.doForAllTiles(t => t.computePointsAndEdges());
 
             for (let i = 0; i < this.nbTiles / 100; i++) {
                 let river = new River(this);
@@ -117,38 +117,28 @@ module CIV {
                 }
                 this.add(river.graphics);
             }
-            // Create resources for each tiles   
-            this.updateResourceLayer();
+            // Draw all ressources on a container
+            // this.updateResourceLayer();
+
         }
 
         /**
          * Draw the texture with all resources from all tiles on it.
          */
         updateResourceLayer() {
+            let isVisible = false;
             if (this.resourceLayer) {
+                isVisible = this.resourceLayer.visible;
                 this.resourceLayer.destroy();
             }
 
             console.time("resource drawing")
-            let container = Game.INSTANCE.make.container({ x: 0, y: 0 });
-            this.doForAllTiles(t => true, t => t.drawResources(container))
-            let b = this.getBounds()
-            this.resourceLayer = Game.INSTANCE.add.renderTexture(b.left, b.top,
-                b.width, b.height)
-            this.resourceLayer.depth = 3;
+            this.resourceLayer = Game.INSTANCE.add.container(0, 0);
+            // let container = Game.INSTANCE.make.container({ x: 0, y: 0 });
+            this.doForAllTiles(t => t.drawResources(this.resourceLayer))
+            this.resourceLayer.depth = Constants.LAYER.RESOURCES_MAP;
+            this.resourceLayer.visible = isVisible;
 
-            // let g = Game.INSTANCE.make.graphics({ x: 0, y: 0 });
-            // g.fillStyle(0xff0000);
-            // g.fillCircle(0, 0, 50);
-            // g.fillStyle(0xffffff, 0.5);
-            // g.fillRect(0, 0, b.width, b.height)
-            // this._resourceLayer.draw(g)
-
-            this.resourceLayer.draw(container, -b.left, -b.top)
-            container.destroy();
-            // this._resourceLayer.x = -b.width / 2
-            // this._resourceLayer.y = -b.height / 2;
-            // this.add(this._resourceLayer);
             console.timeEnd("resource drawing")
         }
 
@@ -206,7 +196,6 @@ module CIV {
                     continue;
                 }
 
-
                 res.push({
                     tile: n,
                     graphic: n.getHexPrint(0xff0000)
@@ -219,7 +208,7 @@ module CIV {
          * Deactivate all tiles (before activating one generally)
          */
         public deactivateAllOtherTiles(tile: Tile) {
-            this.doForAllTiles(t => t.name !== tile.name, t => t.deactivate());
+            this.doForAllTiles(t => t.deactivate(), t => t.name !== tile.name);
         }
 
         /**
@@ -303,9 +292,12 @@ module CIV {
          * Do a specific action for all tiles where the given predicate is true.
          * Returns all tiles impacted by this action
          */
-        public doForAllTiles(predicate: (t: Tile) => boolean, action: (t: Tile) => void): Array<Tile> {
+        public doForAllTiles(action: (t: Tile) => void, predicate?: (t: Tile) => boolean): Array<Tile> {
 
             let res = [];
+            if (!predicate) {
+                predicate = (t) => true;
+            }
 
             for (let x = 0; x < this._tiles.length; x++) {
                 for (let y = 0; y < this._tiles[0].length; y++) {

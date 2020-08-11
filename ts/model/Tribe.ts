@@ -11,27 +11,85 @@ module CIV {
         /** The color of the influence radius */
         public color: number = 0xff0000;
 
+        /** The fog of war on the map */
+        fogOfWarTiles: Array<Array<Phaser.GameObjects.Image>> = [];
+        fogOfWar: Phaser.GameObjects.Container;
+
         constructor(public name: string) {
             super(Game.INSTANCE);
             Game.INSTANCE.add.existing(this);
+            this.depth = Constants.LAYER.TRIBE_ROOT;
+
+            this.fogOfWar = Game.INSTANCE.make.container({ x: 0, y: 0, add: false });
+            this.add(this.fogOfWar);
+
+            Game.INSTANCE.map.doForAllTiles(t => {
+                let fog = Game.INSTANCE.make.image({ x: t.worldPosition.x, y: t.worldPosition.y, key: 'hex', add: false });
+                fog.name = t.name;
+                fog.setTint(0x000000);
+                fog.depth = Constants.LAYER.TRIBE.FOG_OF_WAR;
+                fog.scale = ratio;
+                this.fogOfWar.add(fog);
+            });
         }
 
-        setCityOn(tile: Tile, map: WorldMap) {
+        setCityOn(tile: Tile): City {
 
             let city = new City({
                 tile: tile,
-                worldmap: map,
+                worldmap: Game.INSTANCE.map,
                 tribe: this
             });
             // Update the tile resource : add one gold and one research
             tile.resources[ResourceType.Gold]++
             tile.resources[ResourceType.Research] += 2;
-            map.updateResourceLayer();
+
+            Game.INSTANCE.map.updateResourceLayer();
 
             this.cities.push(city);
             this.add(city);
+
+            // Remove all tiles of this city from the fog of war
+            for (let t of city.getVision()) {
+                let fog = this.fogOfWar.getByName(t.name);
+                fog.destroy();
+            }
+
+            this.bringToTop(this.fogOfWar);
+            this.bringToTop(city);
+            return city;
         }
 
+        getProductionOf(type: ResourceType): number {
+            let res = 0;
+            for (let t of this.cities) {
+                res += t.getProductionOf(type);
+            }
+            return res;
+        }
+
+        removeFogOfWar(tiles: Array<Tile>) {
+            for (let t of tiles) {
+                let img = this.fogOfWar.getByName(t.name);
+                if (img) {
+                    img.destroy();
+                }
+            }
+        }
+
+        /**
+         * Th vision of the tribe is the union of all vision for all cities and units
+         * and all hexes browsed by all units
+         */
+        // getVision(): Array<Tile> {
+        //     let res = [];
+
+        //     for (let c of this.cities) {
+        //         res.push(...c.getVision());
+        //     }
+
+        //     return res;
+        // }
 
     }
 }

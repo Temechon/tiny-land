@@ -110,22 +110,24 @@ module CIV {
             let p1, p2, p3;
             let delta = 25 * ratio;
 
+            // let wp = this.worldPosition;
+
             switch (nbResources) {
                 case 1:
-                    positions = [this.worldPosition];
+                    positions = [{ x: 0, y: 0 }];
                     break;
                 case 2:
-                    p1 = this.worldPosition;
-                    p2 = this.worldPosition;
+                    p1 = { x: 0, y: 0 };
+                    p2 = { x: 0, y: 0 };
                     p1.y -= delta;
                     p2.y += delta;
                     positions = [p1, p2]
                     break;
                 case 3:
 
-                    p1 = this.worldPosition;
-                    p2 = this.worldPosition;
-                    p3 = this.worldPosition;
+                    p1 = { x: 0, y: 0 };
+                    p2 = { x: 0, y: 0 };
+                    p3 = { x: 0, y: 0 };
                     p1.x -= delta;
                     p1.y -= delta;
                     p2.x += delta;
@@ -147,15 +149,29 @@ module CIV {
             }
         }
 
-        _drawResource(type: ResourceType, nb: number, p: Phaser.Types.Math.Vector2Like, container: Phaser.GameObjects.Container) {
+        _drawResource(type: ResourceType, nb: number, p: Phaser.Types.Math.Vector2Like, rootContainer: Phaser.GameObjects.Container) {
+            let container = Game.INSTANCE.make.container({ x: 0, y: 0, add: false });
             let keys = ['gold', 'food', 'research'];
             let nbKeys = ['one', 'two', 'three', 'four', 'five'];
-            let s = Game.INSTANCE.add.image(p.x, p.y, keys[type]);
+            let s = Game.INSTANCE.make.image({ x: p.x, y: p.y, key: keys[type], add: false });
             s.scale = ratio;
             container.add(s);
-            let nbSprite = Game.INSTANCE.add.image(p.x + 15 * ratio, p.y + 15 * ratio, nbKeys[nb]);
+            let nbSprite = Game.INSTANCE.make.image({ x: p.x + 15 * ratio, y: p.y + 15 * ratio, key: nbKeys[nb - 1], add: false });
             nbSprite.scale = ratio;
             container.add(nbSprite);
+
+            let rt = Game.INSTANCE.make.renderTexture({ x: this.worldPosition.x, y: this.worldPosition.y, width: this.displayWidth, height: this.displayHeight });
+            rt.setOrigin(0.5, 0.5);
+
+            // let g = Game.INSTANCE.make.graphics({ x: 0, y: 0 });
+            // g.fillStyle(0xff0000);
+            // g.fillCircle(0, 0, 50);
+            // g.fillStyle(0xffffff, 0.15);
+            // g.fillRect(0, 0, this.displayWidth, this.displayHeight)
+            // rt.draw(g)
+            rt.draw(container, this.displayWidth / 2, this.displayHeight / 2);
+            rootContainer.add(rt);
+            container.destroy();
         }
         /**
          * Returns all vertices shared with the given tile.
@@ -200,7 +216,7 @@ module CIV {
          */
         public getHexPrint(color: number): Phaser.GameObjects.Graphics {
 
-            let radius = Game.INSTANCE.make.graphics({ x: this.worldPosition.x, y: this.worldPosition.y });
+            let radius = Game.INSTANCE.make.graphics({ x: this.worldPosition.x, y: this.worldPosition.y, add: false });
             radius.fillStyle(color, 1.0);
             radius.beginPath();
             radius.scale = ratio;

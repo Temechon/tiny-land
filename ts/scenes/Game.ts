@@ -4,6 +4,7 @@ module CIV {
     export class Game extends Phaser.Scene {
 
         public player: Tribe;
+        map: WorldMap;
 
         public static INSTANCE: Game;
 
@@ -22,9 +23,9 @@ module CIV {
 
             let ch = new CameraHelper(this);
 
+            this.map = new WorldMap(this);
+
             this.player = new Tribe(chance.name());
-            this.player.depth = 2;
-            let map = new WorldMap(this);
 
             this.cameras.main.zoom = 0.25
 
@@ -36,56 +37,89 @@ module CIV {
             });
             this.input.keyboard.on('keyup-' + 'C', () => {
                 // this.player.visible = !this.player.visible;
-                console.log(this.player.cities[0].getProduction());
+                // console.log(this.player.getProductionOf(ResourceType.Gold));                
             });
 
-            let tile = map.getSartingTile();
-            this.player.setCityOn(tile, map);
+            let tile = this.map.getSartingTile();
+            let city = this.player.setCityOn(tile);
 
 
 
             //this.cameras.main.zoom = 0.8; 
             // this.cameras.main.centerOn(startingCity.position.x, startingCity.position.y);
 
-            // startingCity.produceUnit();
+            city.produceUnit();
 
             //* UI
             {
                 let hud = Game.INSTANCE.add.container();
+                hud.depth = Constants.LAYER.HUD;
                 this.cameras.main.ignore(hud);
 
                 let hudCamera = this.cameras.add();
-                hudCamera.ignore(map);
+                hudCamera.inputEnabled = false;
+                hudCamera.ignore(this.map);
                 hudCamera.ignore(this.player)
-                hudCamera.ignore(map.resourceLayer)
+                hudCamera.ignore(this.map.resourceLayer)
 
                 let titlestyle = {
-                    fontSize: Helpers.font(50),
+                    fontSize: Helpers.font(35),
                     fontFamily: "KeepCalm",
                     color: "#fff",
                     stroke: '#000',
                     strokeThickness: 5,
                 };
-                let style = titlestyle;
-                style.fontSize = Helpers.font(35);
 
-                let gold = this.add.text(0, 0, "GOLD", titlestyle);
+                let gold = this.make.image({
+                    x: 75 * ratio,
+                    y: 75 * ratio,
+                    key: 'gold'
+                });
+                gold.scale = ratio;
+                let food = this.make.image({
+                    x: gold.x,
+                    y: gold.y + gold.height,
+                    key: 'food'
+                });
+                food.scale = ratio;
+                let science = this.make.image({
+                    x: food.x,
+                    y: food.y + food.height,
+                    key: 'research'
+                });
+                science.scale = ratio;
+
                 hud.add(gold);
+                hud.add(food);
+                hud.add(science);
 
+                let goldNb = this.add.text(150 * ratio, gold.y, this.player.getProductionOf(ResourceType.Gold).toString(), titlestyle).setOrigin(0.5, 0.5);
+                let foodNb = this.add.text(150 * ratio, food.y, this.player.getProductionOf(ResourceType.Food).toString(), titlestyle).setOrigin(0.5, 0.5);
+                let scienceNb = this.add.text(150 * ratio, science.y, this.player.getProductionOf(ResourceType.Research).toString(), titlestyle).setOrigin(0.5, 0.5);
+                hud.add(goldNb);
+                hud.add(foodNb);
+                hud.add(scienceNb);
+
+                // BUTTONS
                 let button = new Button(this, {
                     w: 250 * ratio,
                     h: 80 * ratio,
-                    backgroundColor: 0xff0000,
-                    shadowColor: 0xff00ff,
-                    label: "TEST",
-                    fontSize: 50,
+                    backgroundColor: 0x1c4c68,
+                    shadowColor: 0x07141c,
+                    label: "Resources ON",
+                    fontSize: 25,
                     fontFamily: "KeepCalm",
                     fontColor: 'white',
                     x: 200 * ratio,
-                    y: 100 * ratio
+                    y: this.cameras.main.height - 100 * ratio
                 })
                 button.onInputDown = () => {
-                    console.log("coucou", this.scene.key);
+                    this.map.resourceLayer.visible = !this.map.resourceLayer.visible;
+                    if (this.map.resourceLayer.visible) {
+                        button.label = "Resources ON"
+                    } else {
+                        button.label = "Resources OFF"
+                    }
                 }
                 hud.add(button);
             }

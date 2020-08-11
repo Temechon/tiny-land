@@ -38,4 +38,17 @@ abstract class Constants {
             THRESHOLD: 170 // [min; max] : Less is more rocks
         }
     };
+    public static LAYER = {
+        HUD: 15,
+        TRIBE_ROOT: 5,
+        RESOURCES_MAP: 9,
+        MAP: 3,
+
+        TRIBE: {
+            FOG_OF_WAR: 10,
+            UNITS: 9,
+            CITY: 8,
+        },
+
+    }
 }
