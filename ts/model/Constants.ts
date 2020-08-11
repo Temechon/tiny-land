@@ -5,7 +5,7 @@ abstract class Constants {
 
     public static MAP = {
         /** The map size */
-        SIZE: 3, // 20 will be the final size
+        SIZE: 10, // 20 will be the final size
 
         /** Noise parameters for water */
         WATER: {
@@ -39,16 +39,8 @@ abstract class Constants {
         }
     };
     public static LAYER = {
-        HUD: 15,
-        TRIBE_ROOT: 5,
         RESOURCES_MAP: 9,
-        MAP: 3,
-
-        TRIBE: {
-            FOG_OF_WAR: 10,
-            UNITS: 9,
-            CITY: 8,
-        },
-
+        TRIBE_ROOT: 5,
+        MAP: 3
     }
 }

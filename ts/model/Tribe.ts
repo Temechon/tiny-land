@@ -11,9 +11,9 @@ module CIV {
         /** The color of the influence radius */
         public color: number = 0xff0000;
 
-        /** The fog of war on the map */
-        fogOfWarTiles: Array<Array<Phaser.GameObjects.Image>> = [];
+        /** The fog of war on the map  for ths tribe */
         fogOfWar: Phaser.GameObjects.Container;
+
 
         constructor(public name: string) {
             super(Game.INSTANCE);
@@ -27,7 +27,6 @@ module CIV {
                 let fog = Game.INSTANCE.make.image({ x: t.worldPosition.x, y: t.worldPosition.y, key: 'hex', add: false });
                 fog.name = t.name;
                 fog.setTint(0x000000);
-                fog.depth = Constants.LAYER.TRIBE.FOG_OF_WAR;
                 fog.scale = ratio;
                 this.fogOfWar.add(fog);
             });
@@ -44,16 +43,11 @@ module CIV {
             tile.resources[ResourceType.Gold]++
             tile.resources[ResourceType.Research] += 2;
 
-            Game.INSTANCE.map.updateResourceLayer();
-
             this.cities.push(city);
             this.add(city);
 
             // Remove all tiles of this city from the fog of war
-            for (let t of city.getVision()) {
-                let fog = this.fogOfWar.getByName(t.name);
-                fog.destroy();
-            }
+            this.removeFogOfWar(city.getVision());
 
             this.bringToTop(this.fogOfWar);
             this.bringToTop(city);
@@ -72,9 +66,13 @@ module CIV {
             for (let t of tiles) {
                 let img = this.fogOfWar.getByName(t.name);
                 if (img) {
-                    img.destroy();
+                    this.fogOfWar.remove(img, true);
                 }
             }
+
+            // Update the ressource layer
+            Game.INSTANCE.map.updateResourceLayer();
+
         }
 
         /**

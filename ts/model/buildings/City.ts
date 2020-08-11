@@ -32,13 +32,16 @@ module CIV {
             });
 
             cityImage.scale = ratio;
-            this.depth = Constants.LAYER.TRIBE.CITY;
             this.add(cityImage)
 
             // Draw its influence area
             this._drawInfluenceRadius();
             this.add(this._influenceTexture)
             this._tile.addClickable(this);
+        }
+
+        get worldposition(): Phaser.Types.Math.Vector2Like {
+            return { x: this._tile.worldPosition.x, y: this._tile.worldPosition.y }
         }
 
         /**

@@ -59,8 +59,8 @@ module CIV {
             console.log('ratio - ', ratio);
 
 
+            // this.scene.start('gameui');
             this.scene.start('game');
-
         }
 
     }

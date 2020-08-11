@@ -125,7 +125,7 @@ module CIV {
         /**
          * Draw the texture with all resources from all tiles on it.
          */
-        updateResourceLayer() {
+        drawResourceLayer() {
             let isVisible = false;
             if (this.resourceLayer) {
                 isVisible = this.resourceLayer.visible;
@@ -139,8 +139,44 @@ module CIV {
             this.resourceLayer.depth = Constants.LAYER.RESOURCES_MAP;
             this.resourceLayer.visible = isVisible;
 
+            // Mask
+            let mask = Game.INSTANCE.make.container({ x: 0, y: 0 });
+            this.doForAllTiles(t => {
+                let image = t.getHexPrint(0x000000);
+                // image.alpha = 0.5
+                mask.add(image);
+            }, t => {
+                let img = Game.INSTANCE.player.fogOfWar.getByName(t.name);
+                return img == null;
+            });
+
+            this.resourceLayer.mask = new Phaser.Display.Masks.BitmapMask(Game.INSTANCE, mask);
             console.timeEnd("resource drawing")
         }
+
+        updateResourceLayer() {
+            if (!this.resourceLayer) {
+                return;
+            }
+
+            console.time("mask drawing")
+            this.resourceLayer.clearMask(true);
+            // Mask
+            let mask = Game.INSTANCE.make.container({ x: 0, y: 0 });
+            this.doForAllTiles(t => {
+                let image = t.getHexPrint(0x000000);
+                // image.alpha = 0.5
+                mask.add(image);
+            }, t => {
+                let img = Game.INSTANCE.player.fogOfWar.getByName(t.name);
+                return img == null;
+            });
+
+            this.resourceLayer.mask = new Phaser.Display.Masks.BitmapMask(Game.INSTANCE, mask);
+            console.timeEnd("mask drawing")
+
+        }
+
 
         /**
          * A starting city is a random land tile

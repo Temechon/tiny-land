@@ -87,7 +87,7 @@ module CIV {
                 targets: this._image,
                 x: tile.worldPosition.x,
                 y: tile.worldPosition.y,
-                duration: 150,
+                duration: 50,
                 onComplete: () => {
                     this.state = UnitState.IDLE;
                 }
@@ -105,6 +105,7 @@ module CIV {
             // Update fog of war
             let vision = this.getVision();
             this._tribe.removeFogOfWar(vision);
+
         }
 
         /**
