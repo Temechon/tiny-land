@@ -3,7 +3,7 @@ module CIV {
     export enum ResourceType {
         Gold,
         Food,
-        Research
+        Science
     }
 
     export abstract class Resource {
@@ -35,7 +35,7 @@ module CIV {
 
             tile.resources[ResourceType.Gold] = chance.weighted(configGold.values, configGold.weights);
             tile.resources[ResourceType.Food] = chance.weighted(configFood.values, configFood.weights);
-            tile.resources[ResourceType.Research] = chance.weighted(configResearch.values, configResearch.weights);
+            tile.resources[ResourceType.Science] = chance.weighted(configResearch.values, configResearch.weights);
         }
     }
 }

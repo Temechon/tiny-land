@@ -37,19 +37,21 @@ module CIV {
             this.input.keyboard.on('keydown-' + 'X', () => {
                 this.cameras.main.zoom -= 0.25
             });
-            this.input.keyboard.on('keyup-' + 'C', () => {
-                // this.player.visible = !this.player.visible;
-                // console.log(this.player.getProductionOf(ResourceType.Gold));  
-                this.player.fogOfWar.visible = !this.player.fogOfWar.visible
-            });
 
             let tile = this.map.getSartingTile();
             let city = this.player.setCityOn(tile);
             this.map.drawResourceLayer();
 
-            city.produceUnit();
-            console.log();
+            // city.produceUnit();
 
+            this.input.keyboard.on('keyup-' + 'C', () => {
+                // this.player.visible = !this.player.visible;
+                // console.log(this.player.getProduccontionOf(ResourceType.Gold));  
+                // this.player.fogOfWar.visible = !this.player.fogOfWar.visible
+                city.influenceRadius++;
+                city.updateInfluenceRadius();
+                this.events.emit('uiupdate');
+            });
             this.cameras.main.centerOn(city.worldposition.x, city.worldposition.y);
         }
     }

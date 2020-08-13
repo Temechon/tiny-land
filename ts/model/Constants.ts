@@ -5,7 +5,7 @@ abstract class Constants {
 
     public static MAP = {
         /** The map size */
-        SIZE: 10, // 20 will be the final size
+        SIZE: 3, // 20 will be the final size
 
         /** Noise parameters for water */
         WATER: {

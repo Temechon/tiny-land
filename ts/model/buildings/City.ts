@@ -35,7 +35,7 @@ module CIV {
             this.add(cityImage)
 
             // Draw its influence area
-            this._drawInfluenceRadius();
+            this.updateInfluenceRadius();
             this.add(this._influenceTexture)
             this._tile.addClickable(this);
         }
@@ -70,9 +70,10 @@ module CIV {
             return res;
         }
 
-        private _drawInfluenceRadius() {
+        updateInfluenceRadius() {
 
             if (this._influenceTexture) {
+                this._influenceTexture.clearMask(true);
                 this._influenceTexture.destroy();
                 this.remove(this._influenceTexture);
             }
@@ -133,6 +134,7 @@ module CIV {
 
         activate() {
             // TODO Display the build menu
+            this.scene.events.emit("circularmenuon", this.worldposition);
             console.log("CITY ACTIVATED");
         }
 
@@ -145,6 +147,7 @@ module CIV {
 
         deactivate() {
             // TODO Remove the build menu
+            this.scene.events.emit("circularmenuoff");
             console.log("CITY DEACTIVATED");
         }
 

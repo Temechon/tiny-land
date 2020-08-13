@@ -41,7 +41,7 @@ module CIV {
             });
             // Update the tile resource : add one gold and one research
             tile.resources[ResourceType.Gold]++
-            tile.resources[ResourceType.Research] += 2;
+            tile.resources[ResourceType.Science] += 2;
 
             this.cities.push(city);
             this.add(city);
