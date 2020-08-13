@@ -61,6 +61,15 @@ module CIV {
             this._tribe.add(unit);
         }
 
+        /**
+         * Returns the list of all unit this player can create on this city.
+         */
+        getListOfPossibleProduction(): Array<any> {
+            let res = this._tribe.getListOfPossibleProduction();
+            // TODO Filter the list according to the city capabilities (ex:strategic ressources, water...)
+            return res;
+        }
+
         getProductionOf(type: ResourceType): number {
             let res = 0;
             for (let t of this._influenceTiles) {
@@ -133,8 +142,13 @@ module CIV {
         }
 
         activate() {
-            // TODO Display the build menu
-            this.scene.events.emit("circularmenuon", this.worldposition);
+            let listOfUnits = this.getListOfPossibleProduction();
+
+            this.scene.events.emit("circularmenuon", {
+                city: this,
+                position: this.worldposition,
+                constructions: listOfUnits
+            });
             console.log("CITY ACTIVATED");
         }
 
@@ -146,7 +160,6 @@ module CIV {
         }
 
         deactivate() {
-            // TODO Remove the build menu
             this.scene.events.emit("circularmenuoff");
             console.log("CITY DEACTIVATED");
         }

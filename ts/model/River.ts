@@ -2,6 +2,7 @@ module CIV {
     export class River {
 
         private map: WorldMap;
+        private sizeParams: { min: number, max: number };
 
         /** Tile that are close to a river (at least two vertices in common) */
         tiles: Tile[] = [];
@@ -12,8 +13,15 @@ module CIV {
         /** The grahics where the river is drawn */
         graphics: Phaser.GameObjects.Graphics;
 
-        constructor(map: WorldMap) {
-            this.map = map;
+        constructor(config: {
+            map: WorldMap,
+            size: {
+                min: number,
+                max: number
+            }
+        }) {
+            this.map = config.map;
+            this.sizeParams = config.size;
             this.draw();
         }
 
@@ -26,7 +34,7 @@ module CIV {
             }
             this.graphics = Game.INSTANCE.add.graphics();
 
-            let river = this.setStartingPosition({ min: 4, max: 10 });
+            let river = this.setStartingPosition(this.sizeParams);
 
             // Starting point of the river
             let currentVertex = river.start.getRandomVertex();
@@ -108,16 +116,15 @@ module CIV {
         setStartingPosition(config: { min: number, max: number }): { start: Tile, end: Tile } {
             // Get one random tile of land near water
             let land;
+            let allTiles = this.map.getAllTiles((t: Tile) => {
+                if (t.isWater) {
+                    return false;
+                }
+                return true;
+            });
             while (true) {
 
-                land = chance.pickone(
-                    this.map.getAllTiles((t: Tile) => {
-                        if (t.isWater) {
-                            return false;
-                        }
-                        return true;
-                    })
-                );
+                land = chance.pickone(allTiles);
                 // Get the nearest water tile
                 let water = this.getClosestWaterTile(land);
                 if (water.distance < config.min || water.distance > config.max) {

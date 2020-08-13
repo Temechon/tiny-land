@@ -5,7 +5,7 @@ abstract class Constants {
 
     public static MAP = {
         /** The map size */
-        SIZE: 3, // 20 will be the final size
+        SIZE: 5, // 15 will be the final size
 
         /** Noise parameters for water */
         WATER: {
@@ -13,7 +13,7 @@ abstract class Constants {
                 min: 0,
                 max: 255,
                 octaves: 2,
-                frequency: 0.06
+                frequency: 0.05
             },
             THRESHOLD: 140 // [min; max] : Less is more water
         },

@@ -52,6 +52,7 @@ module CIV {
                 city.updateInfluenceRadius();
                 this.events.emit('uiupdate');
             });
+            // this.cameras.main.zoom = 0.25;
             this.cameras.main.centerOn(city.worldposition.x, city.worldposition.y);
         }
     }

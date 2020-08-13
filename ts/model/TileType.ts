@@ -6,5 +6,6 @@ enum TileType {
     Water = "water", /* Only boat can go through */
     Forest = "forest",
     Mountain = "mountain",
-    DeepWater = "deepwater" /* Only bigger boat can navigate here */
+    DeepWater = "deepwater", /* Only bigger boat can navigate here */
+    Toundra = "toundra" /* Nothing much to do here... Maybe except some awesome resources ? */
 }

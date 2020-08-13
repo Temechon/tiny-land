@@ -60,16 +60,31 @@ module CIV {
             })
 
             let menu = null;
-            this._gameScene.events.on('circularmenuon', (arg) => {
-                let screen = this.getXY(arg);
+            this._gameScene.events.on('circularmenuon', (config: {
+                position: Phaser.Types.Math.Vector2Like,
+                constructions: Array<Class>,
+                city: City
+            }) => {
+
+                let screen = this.getXY(config.position);
+
+                let actions = [];
+                for (let con of config.constructions) {
+                    let act = new Action({
+                        scene: this, key: 'food', name: "ici", action: () => {
+                            config.city.produceUnit();
+                            menu.destroy();
+                            menu = null;
+                        }
+                    })
+                    actions.push(act);
+                }
+
                 menu = new CircularMenu({
                     scene: this,
                     x: screen.x,
                     y: screen.y,
-                    actions: [
-                        new Action({ scene: this, key: 'food', name: 'Avant-poste', action: () => console.log("avant poste") }),
-                        new Action({ scene: this, key: 'research', name: 'warrior', action: () => console.log("warrior") }),
-                        new Action({ scene: this, key: 'gold', name: 'warrior', action: () => console.log("warrior 2") })]
+                    actions: actions
                 });
             })
 
@@ -106,11 +121,20 @@ module CIV {
         }
 
         getXY(g: Phaser.Types.Math.Vector2Like): Phaser.Types.Math.Vector2Like {
-            let scrollx = this._gameScene.cameras.main.scrollX * this._gameScene.cameras.main.zoom;
-            let scrolly = this._gameScene.cameras.main.scrollY * this._gameScene.cameras.main.zoom;
+
+            let cam = this._gameScene.cameras.main
+            let screenCenterX = cam.centerX - cam.scrollX * cam.zoom;
+            let screenCenterY = cam.centerY - cam.scrollY * cam.zoom;
+
+            let diffx = (g.x - cam.centerX) * cam.zoom;
+            let diffy = (g.y - cam.centerY) * cam.zoom;
+
+            // console.log(cam.centerX, cam.centerY, cam.scrollX, cam.scrollY);
+            // this.add.image(screenCenterX, screenCenterY, 'food')
+            // this.add.image(screenCenterX + diffx, screenCenterY + diffy, 'gold')
             return {
-                x: g.x - scrollx,
-                y: g.y - scrolly
+                x: screenCenterX + diffx,
+                y: screenCenterY + diffy
             }
         }
     }

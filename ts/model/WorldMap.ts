@@ -28,6 +28,7 @@ module CIV {
 
             let mapCoords = this.grid.hexagon(0, 0, Constants.MAP.SIZE, true);
             this.nbTiles = mapCoords.length;
+            console.log("MAP - ", this.nbTiles, "tiles");
 
             let noiseGen = new FastSimplexNoise(Constants.MAP.WATER.NOISE);
             let forestNoiseGen = new FastSimplexNoise(Constants.MAP.FOREST.NOISE);
@@ -59,13 +60,16 @@ module CIV {
                     tile.setTint(0x1B618C);
                     tile.type = TileType.Water;
                 }
-                else if (forestNoise > Constants.MAP.FOREST.THRESHOLD) {
-                    tile.setTint(0x5E7348)
-                    tile.type = TileType.Forest;
-                }
-                else if (mountainNoise > Constants.MAP.MOUNTAIN.THRESHOLD) {
-                    tile.setTint(0xF8F6FC)
-                    tile.type = TileType.Mountain;
+                else {
+
+                    if (forestNoise > Constants.MAP.FOREST.THRESHOLD) {
+                        tile.setTint(0x5E7348)
+                        tile.type = TileType.Forest;
+                    }
+                    if (mountainNoise > Constants.MAP.MOUNTAIN.THRESHOLD) {
+                        tile.setTint(0xF8F6FC)
+                        tile.type = TileType.Mountain;
+                    }
                 }
 
                 // Set resources for this tile
@@ -101,6 +105,21 @@ module CIV {
                 this.addTileToGraph(t);
             }
 
+            // Arctic on north and south of the map (r = +-MAP.SIZE)
+            let nbLineTop = chance.integer({ min: Constants.MAP.SIZE / 6, max: Constants.MAP.SIZE / 3 });
+            let probamin = 1 / nbLineTop;
+
+            for (let i = 0; i <= nbLineTop; i++) {
+                let allTop = this.getAllTiles(t => t.r === Constants.MAP.SIZE - i);
+                allTop.push(...this.getAllTiles(t => t.r === -Constants.MAP.SIZE + i));
+                for (let t of allTop) {
+                    if (chance.floating({ min: 0, max: 1 }) < (1 - probamin * (i - 1))) {
+                        t.setTint(0xeeeeee);
+                        t.type = TileType.Toundra;
+                    }
+                }
+            }
+
             this.depth = Constants.LAYER.MAP;
             this.scene.add.existing(this);
             this.x = (this.scene.game.config.width as number) / 2;
@@ -109,8 +128,12 @@ module CIV {
             // Create rivers
             this.doForAllTiles(t => t.computePointsAndEdges());
 
-            for (let i = 0; i < this.nbTiles / 100; i++) {
-                let river = new River(this);
+            console.log("MAP - ", this.nbTiles / 75, "rivers");
+            for (let i = 0; i < this.nbTiles / 75; i++) {
+                let river = new River({
+                    map: this,
+                    size: { min: Constants.MAP.SIZE / 4, max: Constants.MAP.SIZE / 2 }
+                });
                 this._rivers.push(river);
                 for (let t of river.tiles) {
                     t.hasRiver = true;
@@ -119,6 +142,7 @@ module CIV {
             }
             // Draw all ressources on a container
             // this.updateResourceLayer();
+
 
         }
 
@@ -135,22 +159,19 @@ module CIV {
             console.time("resource drawing")
             this.resourceLayer = Game.INSTANCE.add.container(0, 0);
             // let container = Game.INSTANCE.make.container({ x: 0, y: 0 });
-            this.doForAllTiles(t => t.drawResources(this.resourceLayer))
-            this.resourceLayer.depth = Constants.LAYER.RESOURCES_MAP;
-            this.resourceLayer.visible = isVisible;
+            // this.doForAllTiles(t => t.drawResources(this.resourceLayer))
+            // this.resourceLayer.depth = Constants.LAYER.RESOURCES_MAP;
+            // this.resourceLayer.visible = isVisible;
 
-            // Mask
-            let mask = Game.INSTANCE.make.container({ x: 0, y: 0 });
-            this.doForAllTiles(t => {
-                let image = t.getHexPrint(0x000000);
-                // image.alpha = 0.5
-                mask.add(image);
-            }, t => {
-                let img = Game.INSTANCE.player.fogOfWar.getByName(t.name);
-                return img == null;
-            });
+            // // Mask
+            // let mask = Game.INSTANCE.make.container({ x: 0, y: 0 });
+            // this.doForAllTiles(t => {
+            //     let image = t.getHexPrint(0x000000);
+            //     // image.alpha = 0.5
+            //     mask.add(image);
+            // }, t => !Game.INSTANCE.player.isInFogOfWar(t));
 
-            this.resourceLayer.mask = new Phaser.Display.Masks.BitmapMask(Game.INSTANCE, mask);
+            // this.resourceLayer.mask = new Phaser.Display.Masks.BitmapMask(Game.INSTANCE, mask);
             console.timeEnd("resource drawing")
         }
 

@@ -20,16 +20,17 @@ module CIV {
             Game.INSTANCE.add.existing(this);
             this.depth = Constants.LAYER.TRIBE_ROOT;
 
-            this.fogOfWar = Game.INSTANCE.make.container({ x: 0, y: 0, add: false });
-            this.add(this.fogOfWar);
+            // Fog of war
+            // this.fogOfWar = Game.INSTANCE.make.container({ x: 0, y: 0, add: false });
+            // this.add(this.fogOfWar);
 
-            Game.INSTANCE.map.doForAllTiles(t => {
-                let fog = Game.INSTANCE.make.image({ x: t.worldPosition.x, y: t.worldPosition.y, key: 'hex', add: false });
-                fog.name = t.name;
-                fog.setTint(0x000000);
-                fog.scale = ratio;
-                this.fogOfWar.add(fog);
-            });
+            // Game.INSTANCE.map.doForAllTiles(t => {
+            //     let fog = Game.INSTANCE.make.image({ x: t.worldPosition.x, y: t.worldPosition.y, key: 'hex', add: false });
+            //     fog.name = t.name;
+            //     fog.setTint(0x000000);
+            //     fog.scale = ratio;
+            //     this.fogOfWar.add(fog);
+            // });
         }
 
         setCityOn(tile: Tile): City {
@@ -63,6 +64,9 @@ module CIV {
         }
 
         removeFogOfWar(tiles: Array<Tile>) {
+            if (!this.fogOfWar) {
+                return;
+            }
             for (let t of tiles) {
                 let img = this.fogOfWar.getByName(t.name);
                 if (img) {
@@ -72,7 +76,26 @@ module CIV {
 
             // Update the ressource layer
             Game.INSTANCE.map.updateResourceLayer();
+        }
 
+        /**
+         * Returns true if the given tile is in the fog of war, false otherwise
+         */
+        isInFogOfWar(tile: Tile): boolean {
+            if (!this.fogOfWar) {
+                return false;
+            }
+            return Game.INSTANCE.player.fogOfWar.getByName(tile.name) !== null
+        }
+
+        /**
+         * Returns the list of all unit this player can create. This list should be then filtered
+         * according to each city that is trying to create something
+         */
+        getListOfPossibleProduction(): Array<Class> {
+            let res = [];
+            res.push(Unit);
+            return res;
         }
 
         /**

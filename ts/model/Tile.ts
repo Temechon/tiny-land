@@ -253,14 +253,14 @@ module CIV {
         }
 
         public onPointerDown() {
-            console.log('tile selected!')
+            console.log('tile selected!', this.q, this.r)
 
             // Deactivate all other tiles
             this._map.deactivateAllOtherTiles(this);
 
 
             if (this._onIt.length === 0) {
-                // Display something when clicking on this tile
+                // If there is no stuff on this tile, nothing to do
                 return;
             }
             // If we cycle around all stuff on this tile, reset all
@@ -291,6 +291,7 @@ module CIV {
          */
         public addClickable(c: IClickable) {
             this._onIt.unshift(c);
+            this.currentlyActivatedIndex = 0;
         }
 
         /**
@@ -303,6 +304,7 @@ module CIV {
             } else {
                 this._onIt.splice(index, 1);
             }
+            this.currentlyActivatedIndex = 0;
         }
 
         /** 
