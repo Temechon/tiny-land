@@ -4,22 +4,41 @@ module CIV {
         _icon: Phaser.GameObjects.Image;
         _action: () => void;
 
+        /**
+         * deactivated : if set, the icon will be appear deactivated and no action will be possible. 
+         * By clicking on the icon, a toast will appear with the reason
+         */
         constructor(config: {
             scene: Phaser.Scene,
             key: string,
             name: string,
+            deactivated?: {
+                reason: string
+            },
             action: () => void
         }) {
             super(config.scene, 0, 0);
             this._action = config.action;
 
             this._icon = this.scene.make.image({ x: 0, y: 0, key: config.key, add: false });
+            this._icon.scale = ratio * 2;
             this.add(this._icon);
+
+            if (config.deactivated) {
+                this._icon.setTint(0x555555);
+                this._action = () => {
+                    new Toast({
+                        scene: this.scene,
+                        message: config.deactivated.reason,
+                        style: Toast.STYLE.WARNING
+                    })
+                }
+            }
 
             let style = {
                 fontSize: Helpers.font(20),
                 fill: "#fff",
-                fontFamily: 'KeepCalm'
+                fontFamily: Constants.FONT.TEXT
             };
 
             let name = this.scene.make.text({ x: 0, y: this._icon.height / 0.95, add: false, text: config.name, style: style });

@@ -6,8 +6,8 @@ module CIV {
         ACTIVATED,
         /** This unit is moving */
         MOVING,
-        /** This unit has already moved */
-        MOVED
+        /** This unit is waiting on the next turn to be able to move again */
+        WAITING_NEXT_TURN
     }
 
     export class Unit extends Phaser.GameObjects.Container implements IClickable {
@@ -47,6 +47,14 @@ module CIV {
             this.currentTile.addClickable(this);
         }
 
+        setWaitingNextTurn() {
+            this.state = UnitState.WAITING_NEXT_TURN;
+        }
+
+        setIdle() {
+            this.state = UnitState.IDLE;
+        }
+
         deactivate() {
             if (this._moveRange) {
                 this._moveRange.forEach(i => i.graphic.destroy());
@@ -58,7 +66,9 @@ module CIV {
         }
 
         activate() {
-            if (this.state === UnitState.IDLE) {
+            if (this.state === UnitState.WAITING_NEXT_TURN) {
+                // Only display something like stat, but can't move
+            } else if (this.state === UnitState.IDLE) {
                 this.state = UnitState.ACTIVATED;
 
                 // Display move range
@@ -89,7 +99,7 @@ module CIV {
                 y: tile.worldPosition.y,
                 duration: 50,
                 onComplete: () => {
-                    this.state = UnitState.IDLE;
+                    this.state = UnitState.WAITING_NEXT_TURN;
                 }
 
             })

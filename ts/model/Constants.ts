@@ -3,6 +3,11 @@
  */
 abstract class Constants {
 
+    static FONT = {
+        TEXT: "OpenSans",
+        NUMBERS: "KeepCalm"
+    };
+
     public static MAP = {
         /** The map size */
         SIZE: 5, // 15 will be the final size

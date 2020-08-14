@@ -17,7 +17,7 @@ module CIV {
 
             let titlestyle = {
                 fontSize: Helpers.font(35),
-                fontFamily: "KeepCalm",
+                fontFamily: Constants.FONT.NUMBERS,
                 color: "#fff",
                 stroke: '#000',
                 strokeThickness: 5,
@@ -62,7 +62,7 @@ module CIV {
             let menu = null;
             this._gameScene.events.on('circularmenuon', (config: {
                 position: Phaser.Types.Math.Vector2Like,
-                constructions: Array<Class>,
+                constructions: Array<ConstructionOrder>,
                 city: City
             }) => {
 
@@ -70,8 +70,16 @@ module CIV {
 
                 let actions = [];
                 for (let con of config.constructions) {
+                    let deactivated = null;
+                    if (con.config.deactivated) {
+                        deactivated = con.config.deactivated;
+                    }
                     let act = new Action({
-                        scene: this, key: 'food', name: "ici", action: () => {
+                        scene: this,
+                        key: 'food',
+                        name: "WARRIOR",
+                        deactivated: deactivated,
+                        action: () => {
                             config.city.produceUnit();
                             menu.destroy();
                             menu = null;
@@ -96,27 +104,65 @@ module CIV {
             })
 
             // BUTTONS
-            let button = new Button(this, {
+            let showResourceButton = new Button(this, {
                 w: 250 * ratio,
                 h: 80 * ratio,
                 backgroundColor: 0x1c4c68,
                 shadowColor: 0x07141c,
                 label: "Resources ON",
                 fontSize: 25,
-                fontFamily: "KeepCalm",
+                fontFamily: Constants.FONT.TEXT,
                 fontColor: 'white',
                 x: 200 * ratio,
                 y: this.cameras.main.height - 100 * ratio
             })
-            button.onInputDown = () => {
+            showResourceButton.onInputDown = () => {
                 this._gameScene.map.resourceLayer.visible = !this._gameScene.map.resourceLayer.visible;
                 if (this._gameScene.map.resourceLayer.visible) {
-                    button.label = "Resources ON"
+                    showResourceButton.label = "Resources ON"
                 } else {
-                    button.label = "Resources OFF"
+                    showResourceButton.label = "Resources OFF"
                 }
             }
-            hud.add(button);
+            hud.add(showResourceButton);
+            // END TURN
+            let endTurnButton = new Button(this, {
+                w: 250 * ratio,
+                h: 80 * ratio,
+                backgroundColor: 0x1c4c68,
+                shadowColor: 0x07141c,
+                label: "Next turn",
+                fontSize: 25,
+                fontFamily: Constants.FONT.TEXT,
+                fontColor: 'white',
+                x: this.cameras.main.width - 225 * ratio,
+                y: this.cameras.main.height - 100 * ratio
+            })
+            endTurnButton.onInputDown = () => {
+                this._gameScene.nextTurn();
+            }
+            hud.add(endTurnButton);
+
+            let test = new Button(this, {
+                w: 250 * ratio,
+                h: 80 * ratio,
+                backgroundColor: 0x1c4c68,
+                shadowColor: 0x07141c,
+                label: "Next turn",
+                fontSize: 25,
+                fontFamily: Constants.FONT.TEXT,
+                fontColor: 'white',
+                x: this.cameras.main.width / 2,
+                y: this.cameras.main.height - 100 * ratio
+            })
+            test.onInputDown = () => {
+                new Toast({
+                    scene: this,
+                    message: "Ceci est un message de test",
+                    style: Toast.STYLE.WARNING
+                })
+            }
+            hud.add(test);
 
         }
 

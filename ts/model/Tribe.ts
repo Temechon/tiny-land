@@ -99,6 +99,15 @@ module CIV {
         }
 
         /**
+         * Reset the state of all units to IDLE
+         */
+        resetAllUnits() {
+            for (let unit of this.units) {
+                unit.setIdle();
+            }
+        }
+
+        /**
          * Th vision of the tribe is the union of all vision for all cities and units
          * and all hexes browsed by all units
          */

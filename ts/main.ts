@@ -2,7 +2,7 @@ var app = {
 
     loadFonts: () => {
         // Load fonts
-        let fonts = ['KeepCalm'];
+        let fonts = ['KeepCalm', 'OpenSans'];
         let fontloaded = 0;
         for (let f of fonts) {
             new FontFaceObserver(f).load().then(() => {

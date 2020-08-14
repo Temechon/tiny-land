@@ -5,6 +5,8 @@ module CIV {
 
         public player: Tribe;
         map: WorldMap;
+        /** All tribes playing on this map */
+        tribes: Array<Tribe> = [];
 
         public static INSTANCE: Game;
 
@@ -28,7 +30,7 @@ module CIV {
             this.map = new WorldMap(this);
 
             this.player = new Tribe(chance.name());
-
+            this.tribes.push(this.player);
             // this.cameras.main.zoom = 0.25
 
             this.input.keyboard.on('keydown-' + 'W', () => {
@@ -38,11 +40,10 @@ module CIV {
                 this.cameras.main.zoom -= 0.25
             });
 
+
             let tile = this.map.getSartingTile();
             let city = this.player.setCityOn(tile);
             this.map.drawResourceLayer();
-
-            // city.produceUnit();
 
             this.input.keyboard.on('keyup-' + 'C', () => {
                 // this.player.visible = !this.player.visible;
@@ -54,6 +55,18 @@ module CIV {
             });
             // this.cameras.main.zoom = 0.25;
             this.cameras.main.centerOn(city.worldposition.x, city.worldposition.y);
+        }
+
+        /**
+         * For all tribes: 
+         * - reset their unit state.
+         * - Increase the production of all cities 
+         */
+        nextTurn() {
+            for (let tribe of this.tribes) {
+                tribe.resetAllUnits();
+                // TODO Finish here
+            }
         }
     }
 }

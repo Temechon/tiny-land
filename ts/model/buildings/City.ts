@@ -1,4 +1,13 @@
 module CIV {
+    export class ConstructionOrder {
+        constructor(public config: {
+            type: Class,
+            deactivated?: { reason: string }
+        }) {
+
+        }
+    }
+
     export class City extends Phaser.GameObjects.Container implements IClickable {
 
         private _tile: Tile;
@@ -45,7 +54,8 @@ module CIV {
         }
 
         /**
-         * TODO Just for test here
+         * Produce a unit on this city.
+         * TODO Remove resources from the tribe to produce this unit
          */
         public produceUnit() {
             let unit = new Unit({
@@ -57,6 +67,7 @@ module CIV {
                 tile: this._tile,
                 tribe: this._tribe
             });
+            unit.setWaitingNextTurn();
             this._tribe.units.push(unit);
             this._tribe.add(unit);
         }
@@ -64,9 +75,19 @@ module CIV {
         /**
          * Returns the list of all unit this player can create on this city.
          */
-        getListOfPossibleProduction(): Array<any> {
-            let res = this._tribe.getListOfPossibleProduction();
+        getListOfPossibleProduction(): Array<ConstructionOrder> {
+            let possible = this._tribe.getListOfPossibleProduction();
+            let res = [];
+
             // TODO Filter the list according to the city capabilities (ex:strategic ressources, water...)
+            for (let p of possible) {
+                // TODO If this unit can be built on this city
+                res.push(new ConstructionOrder({
+                    type: p,
+                    deactivated: { reason: "Il manque des chevaux" }
+                }));
+            }
+
             return res;
         }
 
