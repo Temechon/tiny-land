@@ -33,10 +33,6 @@ module CIV {
             this.player = new Player(chance.name());
             this.tribes.push(this.player);
 
-            // AI
-            let ai = new AI(chance.name());
-            this.tribes.push(ai);
-
             this.input.keyboard.on('keydown-' + 'W', () => {
                 this.cameras.main.zoom += 0.25
             });
@@ -44,13 +40,17 @@ module CIV {
                 this.cameras.main.zoom -= 0.25
             });
 
-            let tiles = this.map.getEvenlyLocatedTiles(2, Constants.MAP.SIZE);
+            // AI
+            let nbPlayer = 2;
+            let tiles = this.map.getEvenlyLocatedTiles(nbPlayer, Constants.MAP.SIZE * 2, this.map.isStartingLocationGood.bind(this.map));
             this.player.setCityOn(tiles[0]);
-            ai.setCityOn(tiles[1]);
+            for (let i = 1; i < nbPlayer; i++) {
+                let ai = new AI(chance.name());
+                this.tribes.push(ai);
+                ai.setCityOn(tiles[i]);
+            }
 
-            // let tile = this.map.getSartingTile();
-            // let city = this.player.setCityOn(tile);
-            this.map.drawResourceLayer();
+            // this.map.drawResourceLayer();
 
             // this.input.keyboard.on('keyup-' + 'C', () => {
             //     // this.player.visible = !this.player.visible;
@@ -70,8 +70,15 @@ module CIV {
          * - Increase the production of all cities 
          */
         nextTurn() {
+            // Deactivate all tiles
+            this.map.doForAllTiles(t => t.deactivate());
+
             for (let tribe of this.tribes) {
                 tribe.resetAllUnits();
+                if (tribe instanceof AI) {
+                    let ai = tribe as AI;
+                    ai.play();
+                }
                 // TODO Finish here
             }
         }

@@ -17,10 +17,10 @@ abstract class Constants {
             NOISE: {
                 min: 0,
                 max: 255,
-                octaves: 2,
-                frequency: 0.05
+                octaves: 1,
+                frequency: 0.07
             },
-            THRESHOLD: 140 // [min; max] : Less is more water
+            THRESHOLD: 120 // [min; max] : Less is more water
         },
         /** Noise parameters for forest */
         FOREST: {
@@ -44,6 +44,8 @@ abstract class Constants {
         }
     };
     public static LAYER = {
+        TRIBE_PLAYER: 11,
+        FOG_OF_WAR: 10,
         RESOURCES_MAP: 9,
         TRIBE_ROOT: 5,
         MAP: 3

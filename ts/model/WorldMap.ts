@@ -100,9 +100,6 @@ module CIV {
                     t.type = TileType.DeepWater
                     t.setTint(0x053959)
                 }
-
-                // Add this tile to the land graph
-                this.addTileToGraph(t);
             }
 
             // Arctic on north and south of the map (r = +-MAP.SIZE)
@@ -119,6 +116,9 @@ module CIV {
                     }
                 }
             }
+
+            // Add this tile to the land graph
+            this.doForAllTiles(t => this.addTileToGraph(t), t => !t.isWater)
 
             this.depth = Constants.LAYER.MAP;
             this.scene.add.existing(this);
@@ -188,10 +188,7 @@ module CIV {
                 let image = t.getHexPrint(0x000000);
                 // image.alpha = 0.5
                 mask.add(image);
-            }, t => {
-                let img = Game.INSTANCE.player.fogOfWar.getByName(t.name);
-                return img == null;
-            });
+            }, t => !Game.INSTANCE.player.isInFogOfWar(t));
 
             this.resourceLayer.mask = new Phaser.Display.Masks.BitmapMask(Game.INSTANCE, mask);
             console.timeEnd("mask drawing")
@@ -200,39 +197,28 @@ module CIV {
 
 
         /**
-         * A starting city is a random land tile
+         * Returns true if the given tile is a correct starting point for a tribe
          */
-        public getSartingTile(allLandTiles: Array<Tile>): Tile {
-            // let allLandTiles = this.getAllTiles(t => t.type === TileType.Land && t.isEmpty);
-
-            let viableLocationFound = false;
-            let startingTile = null;
-            for (let i = 0; i < 5; i++) {
-                startingTile = chance.pickone(allLandTiles) as Tile;
-                // get ring(2) of this tile
-                let ring = this.grid.ring(startingTile.rq.q, startingTile.rq.r, 2);
-                let tilesInRing = this.getTilesByAxialCoords(ring);
-                // tilesInRing.map(t => t.setTint(0xff00ff))
-                // The starting location should not be on the border of the map
-                if (tilesInRing.length <= 7) {
-                    continue;
-                }
-                // The starting location should not be near too much water
-                let nbWaterInRing = tilesInRing.filter(t => t.isWater).length;
-                if (nbWaterInRing < tilesInRing.length) {
-                    return startingTile;
-                }
+        public isStartingLocationGood(t: Tile): boolean {
+            let ring = this.grid.ring(t.rq.q, t.rq.r, 2);
+            let tilesInRing = this.getTilesByAxialCoords(ring);
+            // The starting location should not be on the border of the map
+            if (tilesInRing.length <= 7) {
+                return false;
             }
-            console.warn("Impossible")
-            return startingTile;
-
+            // The starting location should not be near too much water
+            let nbWaterInRing = tilesInRing.filter(t => t.isWater).length;
+            if (nbWaterInRing < tilesInRing.length) {
+                return true;
+            }
+            return false;
         }
 
         /**
          * Returns the list of tile (with its graphics) corrsponding to the given moving range 
          */
-        public getMoveRange(config: { from: Tile; range: number; }): Array<{ tile: Tile, graphic: Phaser.GameObjects.Graphics }> {
-            let res: Array<{ tile: Tile, graphic: Phaser.GameObjects.Graphics }> = [];
+        public getMoveRange(config: { from: Tile; range: number; }): Array<Tile> {
+            let res: Tile[] = [];
             let range: Tile[] = [];
 
             for (let i = config.range; i >= 1; i--) {
@@ -254,10 +240,7 @@ module CIV {
                     continue;
                 }
 
-                res.push({
-                    tile: n,
-                    graphic: n.getHexPrint(0xff0000)
-                });
+                res.push(n);
             }
             return res;
         }
@@ -396,6 +379,15 @@ module CIV {
             this._landgraph.addVertex(tile.name, neighboursSet);
         }
 
+        /**
+         * Returns the path (as tile name) between the two given tiles.
+         */
+        getPath(from: string, to: string): Array<string> {
+            let path = this._landgraph.shortestPath(from, to);
+            console.log(path)
+            return path;
+        }
+
         /** DEBUG USEFULNESS ONLY */
         public displayGraph() {
 
@@ -429,23 +421,35 @@ module CIV {
             // END DEBUG
         }
 
-        getEvenlyLocatedTiles(nb: number, distanceMax: number): Array<Tile> {
+        /**
+         * Tries 10 times max to get 'nb' tiles separated by 'disancemax' tiles. 
+         * If the selected tile does not answer to the condition, a new try is done
+         */
+        getEvenlyLocatedTiles(nb: number, distanceMax: number, condition?: (t: Tile) => boolean): Array<Tile> {
             let res = [];
+            // If no condition is set, the selected tile is the corect one
+            if (!condition) {
+                condition = t => true;
+            }
             for (let i = distanceMax; i > 0; i--) {
-                let chosenTiles = [];
-                let allLandTiles = this.getAllTiles(t => t.type === TileType.Land && t.isEmpty);
+                // Let's try 10 times at this distance
+                for (let tryy = 0; tryy < 10; tryy++) {
+                    console.log("Try", tryy, "for distance", i);
+                    let chosenTiles = [];
+                    let allLandTiles = this.getAllTiles(t => !t.isWater && t.isEmpty && condition(t));
 
-                for (let j = 0; j < nb; j++) {
-                    if (allLandTiles.length === 0) {
-                        break;
+                    for (let j = 0; j < nb; j++) {
+                        if (allLandTiles.length === 0) {
+                            break;
+                        }
+                        let tile = chance.pickone(allLandTiles);
+                        allLandTiles = allLandTiles.filter(t => HexGrid.axialDistance(t.rq.q, t.rq.r, tile.rq.q, tile.rq.r) >= i);
+                        chosenTiles.push(tile);
                     }
-                    let tile = chance.pickone(allLandTiles);
-                    allLandTiles = allLandTiles.filter(t => HexGrid.axialDistance(t.rq.q, t.rq.r, tile.rq.q, tile.rq.r) >= i);
-                    chosenTiles.push(tile);
-                }
-                if (chosenTiles.length === nb) {
-                    console.log("final distance", i)
-                    return chosenTiles;
+                    if (chosenTiles.length === nb) {
+                        console.log("final distance", i)
+                        return chosenTiles;
+                    }
                 }
             }
             console.warn("Impossible to find evenly placed tiles")

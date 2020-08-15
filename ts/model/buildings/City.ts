@@ -82,9 +82,14 @@ module CIV {
             // TODO Filter the list according to the city capabilities (ex:strategic ressources, water...)
             for (let p of possible) {
                 // TODO If this unit can be built on this city
+                let deactivated = null;
+                if (this._tile.hasUnit) {
+                    deactivated = { reason: "A unit is already in the city" }
+                }
+
                 res.push(new ConstructionOrder({
                     type: p,
-                    deactivated: { reason: "Il manque des chevaux" }
+                    deactivated: deactivated
                 }));
             }
 

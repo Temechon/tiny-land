@@ -3,18 +3,10 @@ module CIV {
         constructor(name: string) {
             super(name);
 
+            this.depth = Constants.LAYER.TRIBE_PLAYER;
             // Fog of war
             if (Tribe.DEBUG_FOG_OF_WAR_ON) {
-                this.fogOfWar = Game.INSTANCE.make.container({ x: 0, y: 0, add: false });
-                this.add(this.fogOfWar);
-
-                Game.INSTANCE.map.doForAllTiles(t => {
-                    let fog = Game.INSTANCE.make.image({ x: t.worldPosition.x, y: t.worldPosition.y, key: 'hex', add: false });
-                    fog.name = t.name;
-                    fog.setTint(0x000000);
-                    fog.scale = ratio * 1.1;
-                    this.fogOfWar.add(fog);
-                });
+                this.fogOfWar.render();
             }
         }
     }

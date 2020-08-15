@@ -143,26 +143,26 @@ module CIV {
             }
             hud.add(endTurnButton);
 
-            let test = new Button(this, {
-                w: 250 * ratio,
-                h: 80 * ratio,
-                backgroundColor: 0x1c4c68,
-                shadowColor: 0x07141c,
-                label: "Next turn",
-                fontSize: 25,
-                fontFamily: Constants.FONT.TEXT,
-                fontColor: 'white',
-                x: this.cameras.main.width / 2,
-                y: this.cameras.main.height - 100 * ratio
-            })
-            test.onInputDown = () => {
-                new Toast({
-                    scene: this,
-                    message: "Ceci est un message de test",
-                    style: Toast.STYLE.WARNING
-                })
-            }
-            hud.add(test);
+            // let test = new Button(this, {
+            //     w: 250 * ratio,
+            //     h: 80 * ratio,
+            //     backgroundColor: 0x1c4c68,
+            //     shadowColor: 0x07141c,
+            //     label: "Next turn",
+            //     fontSize: 25,
+            //     fontFamily: Constants.FONT.TEXT,
+            //     fontColor: 'white',
+            //     x: this.cameras.main.width / 2,
+            //     y: this.cameras.main.height - 100 * ratio
+            // })
+            // test.onInputDown = () => {
+            //     new Toast({
+            //         scene: this,
+            //         message: "Ceci est un message de test",
+            //         style: Toast.STYLE.WARNING
+            //     })
+            // }
+            // hud.add(test);
 
         }
 

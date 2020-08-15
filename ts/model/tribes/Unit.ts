@@ -16,8 +16,9 @@ module CIV {
         range: number = 1;
         /** The number of tile this unit can see */
         vision: number = 1;
-        /** The sprite displayed on each tile this unit can move to */
-        private _moveRange: Array<{ tile: Tile, graphic: Phaser.GameObjects.Graphics }>;
+        /** The set of tile this unit can mvoe to */
+        private _moveRange: Array<Tile>;
+        private _moveRangeGraphics: Array<Phaser.GameObjects.Graphics>;
         public currentTile: Tile;
         public map: WorldMap;
         private _image: Phaser.GameObjects.Image;
@@ -36,14 +37,17 @@ module CIV {
             tribe: Tribe
         }) {
             super(config.scene);
+
+            this.currentTile = config.tile;
+            this.map = config.map;
+            this._tribe = config.tribe;
+
             let image = Game.INSTANCE.make.image({ x: config.x, y: config.y, key: config.key, add: false });
+            image.setTint(this._tribe.color);
             this.add(image);
             this._image = image;
 
             image.scale = ratio;
-            this.currentTile = config.tile;
-            this.map = config.map;
-            this._tribe = config.tribe;
             this.currentTile.addClickable(this);
         }
 
@@ -56,9 +60,9 @@ module CIV {
         }
 
         deactivate() {
-            if (this._moveRange) {
-                this._moveRange.forEach(i => i.graphic.destroy());
-                this._moveRange = null;
+            if (this._moveRangeGraphics) {
+                this._moveRangeGraphics.forEach(i => i.destroy());
+                this._moveRangeGraphics = null;
             }
             if (this.state === UnitState.ACTIVATED) {
                 this.state = UnitState.IDLE
@@ -76,13 +80,16 @@ module CIV {
                     from: this.currentTile,
                     range: this.range
                 });
+                this._moveRangeGraphics = [];
 
                 for (let obj of this._moveRange) {
-                    let h = obj.graphic;
+                    let h = obj.getHexPrint(0x00ffaa);
+                    h.scale *= 0.75;
+                    this._moveRangeGraphics.push(h);
                     h.alpha = 0.5
                     this.add(h);
                     // Game.INSTANCE.add.existing(h);
-                    h.on('pointerdown', this.move.bind(this, obj.tile));
+                    h.on('pointerdown', this.move.bind(this, obj));
                 }
             }
         }
@@ -119,13 +126,18 @@ module CIV {
         }
 
         /**
-         * Returns the list of tiles this unit can see
+         * Returns the list of tiles this unit can see, starting from the given tile.
+         * If no tile is given, the vision is from the unit currentile
          */
-        getVision(): Array<Tile> {
+        getVision(tile?: Tile): Array<Tile> {
+            if (!tile) {
+                tile = this.currentTile;
+            }
+
             let res = [];
 
             for (let i = this.vision; i >= 1; i--) {
-                res.push(...this.map.getTilesByAxialCoords(this.map.grid.ring(this.currentTile.rq.q, this.currentTile.rq.r, i)))
+                res.push(...this.map.getTilesByAxialCoords(this.map.grid.ring(tile.rq.q, tile.rq.r, i)))
             }
             return res;
         }

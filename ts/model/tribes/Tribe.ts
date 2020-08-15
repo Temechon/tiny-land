@@ -12,16 +12,16 @@ module CIV {
         public color: number;
 
         /** The fog of war on the map  for ths tribe */
-        fogOfWar: Phaser.GameObjects.Container;
+        fogOfWar: FogOfWar;
 
-        static DEBUG_FOG_OF_WAR_ON = true;
+        static DEBUG_FOG_OF_WAR_ON = false;
 
 
         constructor(public name: string) {
             super(Game.INSTANCE);
             Game.INSTANCE.add.existing(this);
             this.depth = Constants.LAYER.TRIBE_ROOT;
-
+            this.fogOfWar = new FogOfWar();
             this.color = parseInt(chance.color({ format: '0x' }));
 
         }
@@ -43,7 +43,7 @@ module CIV {
             // Remove all tiles of this city from the fog of war
             this.removeFogOfWar(city.getVision());
 
-            this.bringToTop(this.fogOfWar);
+            // this.bringToTop(this.fogOfWar);
             this.bringToTop(city);
             return city;
         }
@@ -57,14 +57,8 @@ module CIV {
         }
 
         removeFogOfWar(tiles: Array<Tile>) {
-            if (!this.fogOfWar) {
-                return;
-            }
             for (let t of tiles) {
-                let img = this.fogOfWar.getByName(t.name);
-                if (img) {
-                    this.fogOfWar.remove(img, true);
-                }
+                this.fogOfWar.remove(t);
             }
 
             // Update the ressource layer
@@ -75,10 +69,7 @@ module CIV {
          * Returns true if the given tile is in the fog of war, false otherwise
          */
         isInFogOfWar(tile: Tile): boolean {
-            if (!this.fogOfWar) {
-                return false;
-            }
-            return Game.INSTANCE.player.fogOfWar.getByName(tile.name) !== null
+            return this.fogOfWar.has(tile);
         }
 
         /**
