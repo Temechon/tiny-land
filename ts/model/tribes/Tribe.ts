@@ -9,10 +9,12 @@ module CIV {
         public units: Unit[] = [];
 
         /** The color of the influence radius */
-        public color: number = 0xff0000;
+        public color: number;
 
         /** The fog of war on the map  for ths tribe */
         fogOfWar: Phaser.GameObjects.Container;
+
+        static DEBUG_FOG_OF_WAR_ON = true;
 
 
         constructor(public name: string) {
@@ -20,17 +22,8 @@ module CIV {
             Game.INSTANCE.add.existing(this);
             this.depth = Constants.LAYER.TRIBE_ROOT;
 
-            // Fog of war
-            // this.fogOfWar = Game.INSTANCE.make.container({ x: 0, y: 0, add: false });
-            // this.add(this.fogOfWar);
+            this.color = parseInt(chance.color({ format: '0x' }));
 
-            // Game.INSTANCE.map.doForAllTiles(t => {
-            //     let fog = Game.INSTANCE.make.image({ x: t.worldPosition.x, y: t.worldPosition.y, key: 'hex', add: false });
-            //     fog.name = t.name;
-            //     fog.setTint(0x000000);
-            //     fog.scale = ratio;
-            //     this.fogOfWar.add(fog);
-            // });
         }
 
         setCityOn(tile: Tile): City {

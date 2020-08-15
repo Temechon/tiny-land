@@ -1,6 +1,7 @@
 module CIV {
 
     export type Vertex = { coords: Phaser.Geom.Point, neighbours: number[] };
+    export type RQ = { r: number, q: number };
 
     export class Tile extends Phaser.GameObjects.Image {
 
@@ -11,10 +12,9 @@ module CIV {
 
         public hasRiver: boolean = false;
 
-        /** Row number */
-        public r: number;
-        /** Column number */
-        public q: number;
+        /** Row and col number */
+        public rq: RQ;
+
         public name: string;
         private _map: WorldMap;
 
@@ -38,8 +38,7 @@ module CIV {
             super(config.scene, config.x, config.y, config.key);
 
             this.scale = ratio;
-            this.r = config.r;
-            this.q = config.q;
+            this.rq = { r: config.r, q: config.q };
             this.name = chance.guid();
             this._map = config.map;
 
@@ -57,8 +56,8 @@ module CIV {
 
         getStorageXY(): { x: number, y: number } {
             return {
-                x: this.r + Constants.MAP.SIZE,
-                y: this.q + Constants.MAP.SIZE
+                x: this.rq.r + Constants.MAP.SIZE,
+                y: this.rq.q + Constants.MAP.SIZE
             }
         }
 
@@ -253,7 +252,7 @@ module CIV {
         }
 
         public onPointerDown() {
-            console.log('tile selected!', this.q, this.r)
+            console.log('tile selected!', this.rq.q, this.rq.r)
 
             // Deactivate all other tiles
             this._map.deactivateAllOtherTiles(this);
@@ -313,6 +312,9 @@ module CIV {
         public get hasUnit(): boolean {
             return this._onIt.filter(s => s instanceof Unit).length > 0;
         }
+        public get isEmpty(): boolean {
+            return this._onIt.length === 0;
+        }
 
         /**
          * Draw the path from the 'from' vertex, to the 'to' vertex. Returns the list of vertex use to draw this path, including 'from' and 'to'
@@ -361,7 +363,7 @@ module CIV {
         }
 
         equals(other: Tile) {
-            return this.q === other.q && this.r === other.r;
+            return this.rq.q === other.rq.q && this.rq.r === other.rq.r;
         }
     }
 

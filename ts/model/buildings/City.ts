@@ -115,7 +115,7 @@ module CIV {
             while (r > 0) {
                 ring.push(...this.worldmap.getTilesByAxialCoords(
                     this.worldmap.grid.ring(
-                        this._tile.q, this._tile.r, r
+                        this._tile.rq.q, this._tile.rq.r, r
                     )
                 ))
                 r--;
@@ -146,8 +146,6 @@ module CIV {
 
 
             let size = Helpers.getSize(container, this._tile.displayWidth, this._tile.displayHeight);
-            console.log("SIZE", container.getBounds());
-
 
             let rt = Game.INSTANCE.make.renderTexture({ x: this._tile.worldPosition.x, y: this._tile.worldPosition.y, width: size.width * 2, height: size.height * 2 })
             rt.setOrigin(0.5, 0.5);

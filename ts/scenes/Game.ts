@@ -29,9 +29,13 @@ module CIV {
 
             this.map = new WorldMap(this);
 
-            this.player = new Tribe(chance.name());
+            // TRIBES
+            this.player = new Player(chance.name());
             this.tribes.push(this.player);
-            // this.cameras.main.zoom = 0.25
+
+            // AI
+            let ai = new AI(chance.name());
+            this.tribes.push(ai);
 
             this.input.keyboard.on('keydown-' + 'W', () => {
                 this.cameras.main.zoom += 0.25
@@ -40,21 +44,24 @@ module CIV {
                 this.cameras.main.zoom -= 0.25
             });
 
+            let tiles = this.map.getEvenlyLocatedTiles(2, Constants.MAP.SIZE);
+            this.player.setCityOn(tiles[0]);
+            ai.setCityOn(tiles[1]);
 
-            let tile = this.map.getSartingTile();
-            let city = this.player.setCityOn(tile);
+            // let tile = this.map.getSartingTile();
+            // let city = this.player.setCityOn(tile);
             this.map.drawResourceLayer();
 
-            this.input.keyboard.on('keyup-' + 'C', () => {
-                // this.player.visible = !this.player.visible;
-                // console.log(this.player.getProduccontionOf(ResourceType.Gold));  
-                // this.player.fogOfWar.visible = !this.player.fogOfWar.visible
-                city.influenceRadius++;
-                city.updateInfluenceRadius();
-                this.events.emit('uiupdate');
-            });
-            // this.cameras.main.zoom = 0.25;
-            this.cameras.main.centerOn(city.worldposition.x, city.worldposition.y);
+            // this.input.keyboard.on('keyup-' + 'C', () => {
+            //     // this.player.visible = !this.player.visible;
+            //     // console.log(this.player.getProduccontionOf(ResourceType.Gold));  
+            //     // this.player.fogOfWar.visible = !this.player.fogOfWar.visible
+            //     city.influenceRadius++;
+            //     city.updateInfluenceRadius();
+            //     this.events.emit('uiupdate');
+            // });
+            // // this.cameras.main.zoom = 0.25;
+            // this.cameras.main.centerOn(city.worldposition.x, city.worldposition.y);
         }
 
         /**

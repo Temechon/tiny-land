@@ -110,8 +110,8 @@ module CIV {
             let probamin = 1 / nbLineTop;
 
             for (let i = 0; i <= nbLineTop; i++) {
-                let allTop = this.getAllTiles(t => t.r === Constants.MAP.SIZE - i);
-                allTop.push(...this.getAllTiles(t => t.r === -Constants.MAP.SIZE + i));
+                let allTop = this.getAllTiles(t => t.rq.r === Constants.MAP.SIZE - i);
+                allTop.push(...this.getAllTiles(t => t.rq.r === -Constants.MAP.SIZE + i));
                 for (let t of allTop) {
                     if (chance.floating({ min: 0, max: 1 }) < (1 - probamin * (i - 1))) {
                         t.setTint(0xeeeeee);
@@ -158,20 +158,20 @@ module CIV {
 
             console.time("resource drawing")
             this.resourceLayer = Game.INSTANCE.add.container(0, 0);
-            // let container = Game.INSTANCE.make.container({ x: 0, y: 0 });
-            // this.doForAllTiles(t => t.drawResources(this.resourceLayer))
-            // this.resourceLayer.depth = Constants.LAYER.RESOURCES_MAP;
-            // this.resourceLayer.visible = isVisible;
 
-            // // Mask
-            // let mask = Game.INSTANCE.make.container({ x: 0, y: 0 });
-            // this.doForAllTiles(t => {
-            //     let image = t.getHexPrint(0x000000);
-            //     // image.alpha = 0.5
-            //     mask.add(image);
-            // }, t => !Game.INSTANCE.player.isInFogOfWar(t));
+            this.doForAllTiles(t => t.drawResources(this.resourceLayer))
+            this.resourceLayer.depth = Constants.LAYER.RESOURCES_MAP;
+            this.resourceLayer.visible = isVisible;
 
-            // this.resourceLayer.mask = new Phaser.Display.Masks.BitmapMask(Game.INSTANCE, mask);
+            // Mask
+            let mask = Game.INSTANCE.make.container({ x: 0, y: 0 });
+            this.doForAllTiles(t => {
+                let image = t.getHexPrint(0x000000);
+                // image.alpha = 0.5
+                mask.add(image);
+            }, t => !Game.INSTANCE.player.isInFogOfWar(t));
+
+            this.resourceLayer.mask = new Phaser.Display.Masks.BitmapMask(Game.INSTANCE, mask);
             console.timeEnd("resource drawing")
         }
 
@@ -202,15 +202,15 @@ module CIV {
         /**
          * A starting city is a random land tile
          */
-        public getSartingTile(): Tile {
-            let allLandTiles = this.getAllTiles(t => t.type === TileType.Land);
+        public getSartingTile(allLandTiles: Array<Tile>): Tile {
+            // let allLandTiles = this.getAllTiles(t => t.type === TileType.Land && t.isEmpty);
 
             let viableLocationFound = false;
             let startingTile = null;
-            while (!viableLocationFound) {
+            for (let i = 0; i < 5; i++) {
                 startingTile = chance.pickone(allLandTiles) as Tile;
                 // get ring(2) of this tile
-                let ring = this.grid.ring(startingTile.q, startingTile.r, 2);
+                let ring = this.grid.ring(startingTile.rq.q, startingTile.rq.r, 2);
                 let tilesInRing = this.getTilesByAxialCoords(ring);
                 // tilesInRing.map(t => t.setTint(0xff00ff))
                 // The starting location should not be on the border of the map
@@ -220,11 +220,12 @@ module CIV {
                 // The starting location should not be near too much water
                 let nbWaterInRing = tilesInRing.filter(t => t.isWater).length;
                 if (nbWaterInRing < tilesInRing.length) {
-                    viableLocationFound = true;
+                    return startingTile;
                 }
             }
-
+            console.warn("Impossible")
             return startingTile;
+
         }
 
         /**
@@ -235,7 +236,7 @@ module CIV {
             let range: Tile[] = [];
 
             for (let i = config.range; i >= 1; i--) {
-                range.push(...this.getTilesByAxialCoords(this.grid.ring(config.from.q, config.from.r, i)))
+                range.push(...this.getTilesByAxialCoords(this.grid.ring(config.from.rq.q, config.from.rq.r, i)))
             }
 
             for (let n of range) {
@@ -248,7 +249,7 @@ module CIV {
                 }
 
                 // let path = this._landgraph.shortestPath(config.from.name, n.name);
-                let path = HexGrid.axialDistance(config.from.q, config.from.r, n.q, n.r)
+                let path = HexGrid.axialDistance(config.from.rq.q, config.from.rq.r, n.rq.q, n.rq.r)
                 if (path > config.range + 1) {
                     continue;
                 }
@@ -272,7 +273,7 @@ module CIV {
          * Return the list of neighbours of the given tile
          */
         getNeighbours(t: Tile): Array<Tile> {
-            return this.getTilesByAxialCoords(this.grid.neighbors(t.q, t.r));
+            return this.getTilesByAxialCoords(this.grid.neighbors(t.rq.q, t.rq.r));
         }
 
 
@@ -384,7 +385,7 @@ module CIV {
 
             let neighboursSet = {};
 
-            let neighbours = this.getTilesByAxialCoords(this.grid.neighbors(tile.q, tile.r));
+            let neighbours = this.getTilesByAxialCoords(this.grid.neighbors(tile.rq.q, tile.rq.r));
             for (let n of neighbours) {
                 if (n.isWater) {
                     continue;
@@ -426,6 +427,29 @@ module CIV {
                 viewLink(hex, this._landgraph.vertices[vertex]);
             }
             // END DEBUG
+        }
+
+        getEvenlyLocatedTiles(nb: number, distanceMax: number): Array<Tile> {
+            let res = [];
+            for (let i = distanceMax; i > 0; i--) {
+                let chosenTiles = [];
+                let allLandTiles = this.getAllTiles(t => t.type === TileType.Land && t.isEmpty);
+
+                for (let j = 0; j < nb; j++) {
+                    if (allLandTiles.length === 0) {
+                        break;
+                    }
+                    let tile = chance.pickone(allLandTiles);
+                    allLandTiles = allLandTiles.filter(t => HexGrid.axialDistance(t.rq.q, t.rq.r, tile.rq.q, tile.rq.r) >= i);
+                    chosenTiles.push(tile);
+                }
+                if (chosenTiles.length === nb) {
+                    console.log("final distance", i)
+                    return chosenTiles;
+                }
+            }
+            console.warn("Impossible to find evenly placed tiles")
+            return res;
         }
     }
 }

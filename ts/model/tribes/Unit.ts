@@ -125,7 +125,7 @@ module CIV {
             let res = [];
 
             for (let i = this.vision; i >= 1; i--) {
-                res.push(...this.map.getTilesByAxialCoords(this.map.grid.ring(this.currentTile.q, this.currentTile.r, i)))
+                res.push(...this.map.getTilesByAxialCoords(this.map.grid.ring(this.currentTile.rq.q, this.currentTile.rq.r, i)))
             }
             return res;
         }

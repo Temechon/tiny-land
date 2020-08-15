@@ -143,7 +143,7 @@ module CIV {
         getClosestWaterTile(tile: Tile): { distance: number, tile: Tile } {
             let distance = 1
             while (true) {
-                let waterTiles = this.map.getTilesByAxialCoords(this.map.grid.ring(tile.q, tile.r, distance)).filter(t => t.isWater)
+                let waterTiles = this.map.getTilesByAxialCoords(this.map.grid.ring(tile.rq.q, tile.rq.r, distance)).filter(t => t.isWater)
                 if (waterTiles.length === 0) {
                     distance++;
                     continue;
@@ -163,7 +163,7 @@ module CIV {
             while (true) {
                 let neighbours = this.map.getNeighbours(start);
                 // Get a random neighbors where the axial distnce is less or equal than the current dist
-                let dist = HexGrid.axialDistance(start.q, start.r, to.q, to.r);
+                let dist = HexGrid.axialDistance(start.rq.q, start.rq.r, to.rq.q, to.rq.r);
 
                 // Distace = 1 => river is finished
                 if (dist === 1) {
@@ -171,7 +171,7 @@ module CIV {
                 }
 
                 let possiblePicks = neighbours.filter(t =>
-                    HexGrid.axialDistance(t.q, t.r, to.q, to.r) < dist &&
+                    HexGrid.axialDistance(t.rq.q, t.rq.r, to.rq.q, to.rq.r) < dist &&
                     !t.isWater &&
                     !this.isInRiver(t, res));
 
