@@ -17,11 +17,11 @@ module CIV {
                 case TileType.Land:
                 case TileType.Water:
                     configGold = { values: [1, 2], weights: [1, 0.75] };
-                    configFood = { values: [1, 2, 3], weights: [0.75, 1, 1] };
+                    configFood = { values: [1, 2, 3], weights: [1, 0.5, 0.25] };
                     configResearch = { values: [0, 1], weights: [0.75, 0.25] };
                     break;
                 case TileType.Forest:
-                    configGold = { values: [1, 2, 3], weights: [0.75, 1, 1] };
+                    configGold = { values: [1, 2, 3], weights: [1, 0.5, 0.25] };
                     configFood = { values: [1, 2], weights: [1, 0.75] };
                     configResearch = { values: [0, 1], weights: [0.5, 0.5] };
                     break;
@@ -30,6 +30,12 @@ module CIV {
                     configGold = { values: [1, 2], weights: [1, 0.75] };
                     configFood = { values: [0, 1], weights: [0.5, 0.5] };
                     configResearch = { values: [1, 2, 3], weights: [0.75, 1, 1] };
+                    break;
+
+                case TileType.Toundra:
+                    configGold = { values: [1, 2], weights: [1, 0.75] };
+                    configFood = { values: [0, 1], weights: [0.75, 0.5] };
+                    configResearch = { values: [2, 3], weights: [0.5, 1] };
                     break;
             }
 

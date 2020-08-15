@@ -67,7 +67,8 @@ module CIV {
                         tile.type = TileType.Forest;
                     }
                     if (mountainNoise > Constants.MAP.MOUNTAIN.THRESHOLD) {
-                        tile.setTint(0xF8F6FC)
+                        tile.setTexture("mountain")
+                        tile.setTint(0xffffff);
                         tile.type = TileType.Mountain;
                     }
                 }
@@ -103,7 +104,7 @@ module CIV {
             }
 
             // Arctic on north and south of the map (r = +-MAP.SIZE)
-            let nbLineTop = chance.integer({ min: Constants.MAP.SIZE / 6, max: Constants.MAP.SIZE / 3 });
+            let nbLineTop = 2;
             let probamin = 1 / nbLineTop;
 
             for (let i = 0; i <= nbLineTop; i++) {
@@ -111,7 +112,8 @@ module CIV {
                 allTop.push(...this.getAllTiles(t => t.rq.r === -Constants.MAP.SIZE + i));
                 for (let t of allTop) {
                     if (chance.floating({ min: 0, max: 1 }) < (1 - probamin * (i - 1))) {
-                        t.setTint(0xeeeeee);
+                        t.setTexture('toundra');
+                        t.setTint(0xffffff)
                         t.type = TileType.Toundra;
                     }
                 }
@@ -206,9 +208,9 @@ module CIV {
             if (tilesInRing.length <= 7) {
                 return false;
             }
-            // The starting location should not be near too much water
-            let nbWaterInRing = tilesInRing.filter(t => t.isWater).length;
-            if (nbWaterInRing < tilesInRing.length) {
+            // The starting location should not be near too much water nor toundra
+            let nbWaterInRing = tilesInRing.filter(t => t.isWater || t.type === TileType.Toundra).length;
+            if (nbWaterInRing < tilesInRing.length / 2) {
                 return true;
             }
             return false;

@@ -166,6 +166,10 @@ module CIV {
         }
 
         activate() {
+            // Check if the city belongs to the player
+            if (!this._tribe.isPlayer) {
+                return;
+            }
             let listOfUnits = this.getListOfPossibleProduction();
 
             this.scene.events.emit("circularmenuon", {

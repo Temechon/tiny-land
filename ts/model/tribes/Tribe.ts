@@ -16,6 +16,9 @@ module CIV {
 
         static DEBUG_FOG_OF_WAR_ON = false;
 
+        /** True if this tribe is the player, false otherwise */
+        isPlayer: boolean = false;
+
 
         constructor(public name: string) {
             super(Game.INSTANCE);

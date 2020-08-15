@@ -70,6 +70,11 @@ module CIV {
         }
 
         activate() {
+            // Check if the city belongs to the player
+            if (!this._tribe.isPlayer) {
+                return;
+            }
+
             if (this.state === UnitState.WAITING_NEXT_TURN) {
                 // Only display something like stat, but can't move
             } else if (this.state === UnitState.IDLE) {

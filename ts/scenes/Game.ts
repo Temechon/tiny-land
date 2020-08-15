@@ -41,7 +41,7 @@ module CIV {
             });
 
             // AI
-            let nbPlayer = 2;
+            let nbPlayer = 3;
             let tiles = this.map.getEvenlyLocatedTiles(nbPlayer, Constants.MAP.SIZE * 2, this.map.isStartingLocationGood.bind(this.map));
             this.player.setCityOn(tiles[0]);
             for (let i = 1; i < nbPlayer; i++) {
@@ -50,7 +50,7 @@ module CIV {
                 ai.setCityOn(tiles[i]);
             }
 
-            // this.map.drawResourceLayer();
+            this.map.drawResourceLayer();
 
             // this.input.keyboard.on('keyup-' + 'C', () => {
             //     // this.player.visible = !this.player.visible;
