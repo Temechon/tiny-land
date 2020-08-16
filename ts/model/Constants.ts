@@ -15,32 +15,35 @@ abstract class Constants {
         /** Noise parameters for water */
         WATER: {
             NOISE: {
+                // min: 0,
+                // max: 100,
+                // octaves: 2,
+                // frequency: 0.08
                 min: 0,
-                max: 255,
+                max: 200,
                 octaves: 1,
-                frequency: 0.07
+                frequency: 0.08
             },
-            THRESHOLD: 120 // [min; max] : Less is more water
+            THRESHOLD: 95 // Less is les water
+        },
+        MOUNTAIN: {
+            NOISE: {
+                min: 0,
+                max: 200,
+                octaves: 3,
+                frequency: 0.35
+            },
+            THRESHOLD: 135
         },
         /** Noise parameters for forest */
         FOREST: {
             NOISE: {
                 min: 0,
-                max: 255,
-                octaves: 4,
-                frequency: 0.07,
-            },
-            THRESHOLD: 160 // [min; max] : Less is more trees
-        },
-        /** Noise parameters for rocks */
-        MOUNTAIN: {
-            NOISE: {
-                min: 0,
-                max: 255,
+                max: 200,
                 octaves: 5,
-                frequency: 0.2,
+                frequency: 0.1
             },
-            THRESHOLD: 170 // [min; max] : Less is more rocks
+            THRESHOLD: 75 // [min; max] : Less is more trees
         }
     };
     public static LAYER = {

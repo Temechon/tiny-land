@@ -16,6 +16,7 @@ module CIV {
             switch (tile.type) {
                 case TileType.Land:
                 case TileType.Water:
+                case TileType.DeepWater:
                     configGold = { values: [1, 2], weights: [1, 0.75] };
                     configFood = { values: [1, 2, 3], weights: [1, 0.5, 0.25] };
                     configResearch = { values: [0, 1], weights: [0.75, 0.25] };

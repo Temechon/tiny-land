@@ -2,7 +2,6 @@ module CIV {
     export class River {
 
         private map: WorldMap;
-        private sizeParams: { min: number, max: number };
 
         /** Tile that are close to a river (at least two vertices in common) */
         tiles: Tile[] = [];
@@ -15,26 +14,21 @@ module CIV {
 
         constructor(config: {
             map: WorldMap,
-            size: {
-                min: number,
-                max: number
-            }
+            startTile: Tile
         }) {
             this.map = config.map;
-            this.sizeParams = config.size;
-            this.draw();
+
+            this.draw(config.startTile);
         }
 
-
-
-        draw() {
+        draw(startTile: Tile) {
             if (this.graphics) {
                 this.graphics.clear();
                 this.graphics.destroy();
             }
             this.graphics = Game.INSTANCE.add.graphics();
 
-            let river = this.setStartingPosition(this.sizeParams);
+            let river = { start: startTile, end: this.map.getClosestWaterTile(startTile).tile };
 
             // Starting point of the river
             let currentVertex = river.start.getRandomVertex();
@@ -113,44 +107,6 @@ module CIV {
             return closest;
         }
 
-        setStartingPosition(config: { min: number, max: number }): { start: Tile, end: Tile } {
-            // Get one random tile of land near water
-            let land;
-            let allTiles = this.map.getAllTiles((t: Tile) => {
-                if (t.isWater) {
-                    return false;
-                }
-                return true;
-            });
-            while (true) {
-
-                land = chance.pickone(allTiles);
-                // Get the nearest water tile
-                let water = this.getClosestWaterTile(land);
-                if (water.distance < config.min || water.distance > config.max) {
-                    continue;
-                }
-                return {
-                    start: land,
-                    end: water.tile
-                }
-            }
-        }
-
-        /**
-         * Returns the water tile the closest to the given tile
-         */
-        getClosestWaterTile(tile: Tile): { distance: number, tile: Tile } {
-            let distance = 1
-            while (true) {
-                let waterTiles = this.map.getTilesByAxialCoords(this.map.grid.ring(tile.rq.q, tile.rq.r, distance)).filter(t => t.isWater)
-                if (waterTiles.length === 0) {
-                    distance++;
-                    continue;
-                }
-                return { distance: distance, tile: chance.pickone(waterTiles) };
-            }
-        }
 
         isInRiver(t: Tile, river: Tile[]): boolean {
             return river.filter(tt => tt.equals(t)).length > 0

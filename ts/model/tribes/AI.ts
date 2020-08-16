@@ -50,9 +50,8 @@ module CIV {
                 }
             }
 
-            console.log(maxFogRemoved);
-
             if (maxFogRemoved < 1) {
+
                 // Get distance to fog of war
                 let minDistanceToFog = Number.MAX_VALUE;
                 for (let possibleMove of tiles) {

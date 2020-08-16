@@ -31,8 +31,8 @@ module CIV {
             console.log("MAP - ", this.nbTiles, "tiles");
 
             let noiseGen = new FastSimplexNoise(Constants.MAP.WATER.NOISE);
-            let forestNoiseGen = new FastSimplexNoise(Constants.MAP.FOREST.NOISE);
-            let mountainNoiseGen = new FastSimplexNoise(Constants.MAP.MOUNTAIN.NOISE);
+            let noiseForestGen = new FastSimplexNoise(Constants.MAP.FOREST.NOISE);
+            let noiseMountainGen = new FastSimplexNoise(Constants.MAP.MOUNTAIN.NOISE);
             for (let c of mapCoords) {
 
                 let center = this.grid.getCenterXY(c.q, c.r);
@@ -53,55 +53,72 @@ module CIV {
                 this.add(tile);
 
                 let noise = noiseGen.scaled([c.q, c.r]);
-                let forestNoise = forestNoiseGen.scaled([c.q, c.r]);
-                let mountainNoise = mountainNoiseGen.scaled([c.q, c.r]);
+                let noiseForest = noiseForestGen.scaled([c.q, c.r]);
+                let noiseMountain = noiseMountainGen.scaled([c.q, c.r]);
 
-                if (noise > Constants.MAP.WATER.THRESHOLD) {
+                if (noise < 55) {
+                    tile.type = TileType.DeepWater
+                    tile.setTint(0x053959)
+                    Resource.setResources(tile);
+                    continue
+                }
+
+                if (noise < Constants.MAP.WATER.THRESHOLD) {
                     tile.setTint(0x1B618C);
                     tile.type = TileType.Water;
-                }
-                else {
-
-                    if (forestNoise > Constants.MAP.FOREST.THRESHOLD) {
-                        tile.setTint(0x5E7348)
-                        tile.type = TileType.Forest;
-                    }
-                    if (mountainNoise > Constants.MAP.MOUNTAIN.THRESHOLD) {
-                        tile.setTexture("mountain")
-                        tile.setTint(0xffffff);
-                        tile.type = TileType.Mountain;
-                    }
+                    // Set resources for this tile
+                    Resource.setResources(tile);
+                    continue
                 }
 
+                tile.setTint(0xA4BF69);
+                tile.type = TileType.Land;
                 // Set resources for this tile
                 Resource.setResources(tile);
+
+                if (noiseForest < Constants.MAP.FOREST.THRESHOLD) {
+                    tile.setTint(0x5E7348)
+                    tile.type = TileType.Forest;
+                    // Set resources for this tile
+                    Resource.setResources(tile);
+                    continue
+                }
+                if (noiseMountain > Constants.MAP.MOUNTAIN.THRESHOLD) {
+                    // tile.setTexture("mountain")
+                    tile.setTint(0x555555);
+                    tile.type = TileType.Mountain;
+                    // Set resources for this tile
+                    Resource.setResources(tile);
+                    continue
+                }
+
             }
 
             // DEEPWATER - Only for tiles that are completely surrounded by water
-            let allTiles = this.getAllTiles(t => true);
-            for (let t of allTiles) {
+            // let allTiles = this.getAllTiles(t => true);
+            // for (let t of allTiles) {
 
-                // If the tile is empty, continue
-                if (!t) {
-                    continue;
-                }
+            //     // If the tile is empty, continue
+            //     if (!t) {
+            //         continue;
+            //     }
 
-                // Get the tile neighbors
-                let neighbours = this.getNeighbours(t);
-                let waterNeighbours = neighbours.filter(tile => {
-                    if (!tile) {
-                        return false;
-                    } else {
-                        return tile.type !== TileType.Water && tile.type !== TileType.DeepWater
-                    }
-                });
+            //     // Get the tile neighbors
+            //     let neighbours = this.getNeighbours(t);
+            //     let waterNeighbours = neighbours.filter(tile => {
+            //         if (!tile) {
+            //             return false;
+            //         } else {
+            //             return tile.type !== TileType.Water && tile.type !== TileType.DeepWater
+            //         }
+            //     });
 
-                // If all neighbours are only water, set it as deepwater
-                if (waterNeighbours.length === 0) {
-                    t.type = TileType.DeepWater
-                    t.setTint(0x053959)
-                }
-            }
+            //     // If all neighbours are only water, set it as deepwater
+            //     if (waterNeighbours.length === 0) {
+            //         t.type = TileType.DeepWater
+            //         t.setTint(0x053959)
+            //     }
+            // }
 
             // Arctic on north and south of the map (r = +-MAP.SIZE)
             let nbLineTop = 2;
@@ -130,11 +147,15 @@ module CIV {
             // Create rivers
             this.doForAllTiles(t => t.computePointsAndEdges());
 
-            console.log("MAP - ", this.nbTiles / 75, "rivers");
-            for (let i = 0; i < this.nbTiles / 75; i++) {
+            let nb = Math.floor(this.nbTiles / 50);
+            console.log("MAP -", nb, "rivers");
+
+            let starts = this.getEvenlyLocatedTiles(nb, Constants.MAP.SIZE / 2, this.isRiverStartingLocationCorrect.bind(this, Constants.MAP.SIZE / 4))
+
+            for (let s of starts) {
                 let river = new River({
                     map: this,
-                    size: { min: Constants.MAP.SIZE / 4, max: Constants.MAP.SIZE / 2 }
+                    startTile: s
                 });
                 this._rivers.push(river);
                 for (let t of river.tiles) {
@@ -145,6 +166,9 @@ module CIV {
             // Draw all ressources on a container
             // this.updateResourceLayer();
 
+
+            console.log("MAP -", this.getAllTiles(t => t.isWater).length, "water tiles");
+            console.log("MAP -", this.getAllTiles(t => !t.isWater).length, "land tiles");
 
         }
 
@@ -201,7 +225,10 @@ module CIV {
         /**
          * Returns true if the given tile is a correct starting point for a tribe
          */
-        public isStartingLocationGood(t: Tile): boolean {
+        isStartingLocationCorrect(t: Tile): boolean {
+            if (!t.isEmpty) {
+                return false;
+            }
             let ring = this.grid.ring(t.rq.q, t.rq.r, 2);
             let tilesInRing = this.getTilesByAxialCoords(ring);
             // The starting location should not be on the border of the map
@@ -210,10 +237,38 @@ module CIV {
             }
             // The starting location should not be near too much water nor toundra
             let nbWaterInRing = tilesInRing.filter(t => t.isWater || t.type === TileType.Toundra).length;
-            if (nbWaterInRing < tilesInRing.length / 2) {
+            if (nbWaterInRing < tilesInRing.length / 3) {
                 return true;
             }
             return false;
+        }
+
+
+        /**
+         * Returns true if the given tile can be the start of a river : the distance to a water tile should be less than the given minimum distance
+         */
+        isRiverStartingLocationCorrect(min: number, t: Tile): boolean {
+            let water = this.getClosestWaterTile(t);
+            if (water.distance < min) {
+                return false;
+            }
+            return true;
+        }
+        /**
+         * Returns the water tile the closest to the given tile
+         */
+        getClosestWaterTile(tile: Tile): { distance: number, tile: Tile } {
+            let distance = 1
+            while (true) {
+                let waterTiles = this.getTilesByAxialCoords(
+                    this.grid.ring(tile.rq.q, tile.rq.r, distance)
+                ).filter(t => t.isWater)
+                if (waterTiles.length === 0) {
+                    distance++;
+                    continue;
+                }
+                return { distance: distance, tile: chance.pickone(waterTiles) };
+            }
         }
 
         /**
@@ -386,7 +441,6 @@ module CIV {
          */
         getPath(from: string, to: string): Array<string> {
             let path = this._landgraph.shortestPath(from, to);
-            console.log(path)
             return path;
         }
 
@@ -436,9 +490,8 @@ module CIV {
             for (let i = distanceMax; i > 0; i--) {
                 // Let's try 10 times at this distance
                 for (let tryy = 0; tryy < 10; tryy++) {
-                    console.log("Try", tryy, "for distance", i);
                     let chosenTiles = [];
-                    let allLandTiles = this.getAllTiles(t => !t.isWater && t.isEmpty && condition(t));
+                    let allLandTiles = this.getAllTiles(t => !t.isWater && condition(t));
 
                     for (let j = 0; j < nb; j++) {
                         if (allLandTiles.length === 0) {
@@ -449,7 +502,7 @@ module CIV {
                         chosenTiles.push(tile);
                     }
                     if (chosenTiles.length === nb) {
-                        console.log("final distance", i)
+                        // console.log("final distance", i)
                         return chosenTiles;
                     }
                 }
