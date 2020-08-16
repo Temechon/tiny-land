@@ -14,19 +14,21 @@ module CIV {
 
         constructor(config: {
             map: WorldMap,
-            startTile: Tile
+            startTile: Tile,
+            graphics: Phaser.GameObjects.Graphics
         }) {
             this.map = config.map;
+            this.graphics = config.graphics;
 
             this.draw(config.startTile);
         }
 
         draw(startTile: Tile) {
-            if (this.graphics) {
-                this.graphics.clear();
-                this.graphics.destroy();
-            }
-            this.graphics = Game.INSTANCE.add.graphics();
+            // if (this.graphics) {
+            //     this.graphics.clear();
+            //     this.graphics.destroy();
+            // }
+            // this.graphics = Game.INSTANCE.add.graphics();
 
             let river = { start: startTile, end: this.map.getClosestWaterTile(startTile).tile };
 
@@ -59,7 +61,7 @@ module CIV {
             let points = this.vertices.map(p => new Phaser.Math.Vector2(p.x, p.y))
             points.push(new Phaser.Math.Vector2(river.end.x, river.end.y));
             path.splineTo(points);
-            this.graphics.lineStyle(30 * ratio, 0x134C73);
+            this.graphics.lineStyle(30 * ratio, 0x1B618C);
             path.draw(this.graphics);
 
             path = new Phaser.Curves.Path(this.vertices[0].x, this.vertices[0].y);

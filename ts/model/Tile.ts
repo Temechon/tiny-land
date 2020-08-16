@@ -26,6 +26,9 @@ module CIV {
         /** The index in the 'onIt' array of the stuff that is currently activated */
         private currentlyActivatedIndex: number = 0;
 
+        /** The list of sprites added on this tile (trees, rocks...) */
+        assets: Array<Phaser.GameObjects.Image> = [];
+
         constructor(config: {
             scene: Phaser.Scene,
             x: number,
@@ -252,7 +255,7 @@ module CIV {
         }
 
         public onPointerDown() {
-            console.log('tile selected!', this.rq.q, this.rq.r)
+            console.log('tile selected!', this.rq)
 
             // Deactivate all other tiles
             this._map.deactivateAllOtherTiles(this);

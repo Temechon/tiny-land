@@ -33,7 +33,7 @@ abstract class Constants {
                 octaves: 3,
                 frequency: 0.35
             },
-            THRESHOLD: 135
+            THRESHOLD: 125
         },
         /** Noise parameters for forest */
         FOREST: {
@@ -47,10 +47,15 @@ abstract class Constants {
         }
     };
     public static LAYER = {
-        TRIBE_PLAYER: 11,
-        FOG_OF_WAR: 10,
-        RESOURCES_MAP: 9,
-        TRIBE_ROOT: 5,
-        MAP: 3
+        FOG_OF_WAR: 20,
+        UNITS: 17,
+        RESOURCES_MAP: 10,
+        TREES: 5,
+        TRIBE_PLAYER: 3,
+        TRIBE_ROOT: 2,
+        MAP: {
+            RIVER: 2,
+            ROOT: 1
+        }
     }
 }

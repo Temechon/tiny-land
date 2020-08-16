@@ -16,7 +16,10 @@ module CIV {
         preload() {
             this.load.image('hex', 'assets/hex.png');
             this.load.image('toundra', 'assets/hex_toundra.png');
-            this.load.image('mountain', 'assets/hex_mountain.png');
+
+            this.load.image('tree', 'assets/tree.png');
+            this.load.image('mountain', 'assets/mountain.png');
+
             this.load.image('city', 'assets/city.png');
             this.load.image('warrior', 'assets/warrior.png');
 

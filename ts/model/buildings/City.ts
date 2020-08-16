@@ -43,6 +43,11 @@ module CIV {
             cityImage.scale = ratio;
             this.add(cityImage)
 
+            // Remove assets from the tile
+            for (let ass of this._tile.assets) {
+                ass.destroy();
+            }
+
             // Draw its influence area
             this.updateInfluenceRadius();
             this.add(this._influenceTexture)
@@ -68,8 +73,9 @@ module CIV {
                 tribe: this._tribe
             });
             unit.setWaitingNextTurn();
+            this.scene.add.existing(unit);
+
             this._tribe.units.push(unit);
-            this._tribe.add(unit);
         }
 
         /**

@@ -41,6 +41,7 @@ module CIV {
             this.currentTile = config.tile;
             this.map = config.map;
             this._tribe = config.tribe;
+            this.depth = Constants.LAYER.UNITS;
 
             let image = Game.INSTANCE.make.image({ x: config.x, y: config.y, key: config.key, add: false });
             image.setTint(this._tribe.color);
