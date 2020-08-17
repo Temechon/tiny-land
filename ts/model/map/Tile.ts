@@ -73,7 +73,7 @@ module CIV {
          */
         hasVertex(vex: Vertex): boolean {
             for (let v of this._vertices) {
-                if (Phaser.Math.Distance.BetweenPointsSquared(vex.coords, v.coords) < 4 * ratio) {
+                if (Phaser.Math.Distance.BetweenPointsSquared(vex.coords, v.coords) < 5 * ratio) {
                     return true;
                 }
             }
@@ -82,7 +82,7 @@ module CIV {
 
         hasVertexAsPoint(p: Phaser.Geom.Point): boolean {
             for (let v of this._vertices) {
-                if (Phaser.Math.Distance.BetweenPointsSquared(p, v.coords) < 4 * ratio) {
+                if (Phaser.Math.Distance.BetweenPointsSquared(p, v.coords) < 5 * ratio) {
                     return true;
                 }
             }
@@ -94,7 +94,7 @@ module CIV {
          */
         getVertex(vex: Vertex): Vertex {
             for (let v of this._vertices) {
-                if (Phaser.Math.Distance.BetweenPointsSquared(vex.coords, v.coords) < 4 * ratio) {
+                if (Phaser.Math.Distance.BetweenPointsSquared(vex.coords, v.coords) < 5 * ratio) {
                     return v;
                 }
             }
@@ -183,7 +183,7 @@ module CIV {
             let res: Vertex[] = [];
             for (let v of this._vertices) {
                 for (let ov of otherVertices) {
-                    if (Phaser.Math.Distance.BetweenPointsSquared(v.coords, ov.coords) < 4 * ratio) {
+                    if (Phaser.Math.Distance.BetweenPointsSquared(v.coords, ov.coords) < 5 * ratio) {
                         res.push(v);
                     }
                 }

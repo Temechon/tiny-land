@@ -96,6 +96,7 @@ module CIV {
                 // text2.text = "Moving " + this.state
 
                 if (pointer.isDown) {
+                    this.scene.events.emit("circularmenuoff")
                     if (!this.movedState[pointer.id]) {
                         this.movedState[pointer.id] = (pointer.x !== pointer.downX) || (pointer.y !== pointer.downY);
                     }

@@ -12,38 +12,38 @@ module CIV {
 
     export class Unit extends Phaser.GameObjects.Container implements IClickable {
 
-        /** The number of tile this unit can go through inone turn */
-        range: number = 1;
-        /** The number of tile this unit can see */
-        vision: number = 1;
+        infos: UnitInfo;
+
         /** The set of tile this unit can mvoe to */
         private _moveRange: Array<Tile>;
         private _moveRangeGraphics: Array<Phaser.GameObjects.Graphics>;
+        private _image: Phaser.GameObjects.Image;
+
         public currentTile: Tile;
         public map: WorldMap;
-        private _image: Phaser.GameObjects.Image;
         /** The tribe this unit belong to */
         private _tribe: Tribe;
-
         state: UnitState = UnitState.IDLE;
 
         constructor(config: {
             scene: Phaser.Scene,
             x: number,
             y: number,
-            key: string,
+            infos: UnitInfo,
             map: WorldMap,
             tile: Tile,
             tribe: Tribe
         }) {
             super(config.scene);
 
+            this.infos = config.infos;
+
             this.currentTile = config.tile;
             this.map = config.map;
             this._tribe = config.tribe;
             this.depth = Constants.LAYER.UNITS;
 
-            let image = Game.INSTANCE.make.image({ x: config.x, y: config.y, key: config.key, add: false });
+            let image = Game.INSTANCE.make.image({ x: config.x, y: config.y, key: config.infos.key, add: false });
             image.setTint(this._tribe.color);
             this.add(image);
             this._image = image;
@@ -91,7 +91,7 @@ module CIV {
                 // Display move range
                 this._moveRange = this.map.getMoveRange({
                     from: this.currentTile,
-                    range: this.range
+                    range: this.infos.range
                 });
                 this._moveRangeGraphics = [];
 
@@ -111,9 +111,6 @@ module CIV {
          * Move this unit to the given tile. IF this unit cannot move, return.
          */
         move(tile: Tile) {
-            if (!this.canMove) {
-                return;
-            }
             this.state = UnitState.MOVING;
 
             Game.INSTANCE.add.tween({
@@ -152,7 +149,7 @@ module CIV {
 
             let res = [];
 
-            for (let i = this.vision; i >= 1; i--) {
+            for (let i = this.infos.vision; i >= 1; i--) {
                 res.push(...this.map.getTilesByAxialCoords(this.map.grid.ring(tile.rq.q, tile.rq.r, i)))
             }
             return res;

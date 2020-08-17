@@ -1,11 +1,8 @@
 module CIV {
-    export class ConstructionOrder {
-        constructor(public config: {
-            type: Class,
-            deactivated?: { reason: string }
-        }) {
 
-        }
+    export interface ConstructionOrder {
+        unit: UnitInfo,
+        deactivated?: { reason: string }
     }
 
     export class City extends Phaser.GameObjects.Container implements IClickable {
@@ -69,41 +66,50 @@ module CIV {
          * Produce a unit on this city.
          * TODO Remove resources from the tribe to produce this unit
          */
-        public produceUnit() {
-            let unit = new Unit({
-                scene: Game.INSTANCE,
-                x: this._tile.worldPosition.x,
-                y: this._tile.worldPosition.y,
-                key: 'warrior',
-                map: this.worldmap,
-                tile: this._tile,
-                tribe: this._tribe
-            });
-            unit.setWaitingNextTurn();
-            this.scene.add.existing(unit);
+        public produceUnit(info: UnitInfo) {
+            if (this._tribe.productionManager.gold > info.cost) {
 
-            this._tribe.units.push(unit);
+                let unit = new Unit({
+                    scene: Game.INSTANCE,
+                    x: this._tile.worldPosition.x,
+                    y: this._tile.worldPosition.y,
+                    infos: info,
+                    map: this.worldmap,
+                    tile: this._tile,
+                    tribe: this._tribe
+                });
+                this._tribe.productionManager.consume(ResourceType.Gold, info.cost);
+                unit.setWaitingNextTurn();
+                this.scene.add.existing(unit);
+
+                this._tribe.units.push(unit);
+                this.scene.events.emit("updateui");
+            }
         }
 
         /**
          * Returns the list of all unit this player can create on this city.
          */
         getListOfPossibleProduction(): Array<ConstructionOrder> {
-            let possible = this._tribe.getListOfPossibleProduction();
+            let possible: Array<UnitInfo> = this._tribe.getListOfPossibleConstruction();
             let res = [];
 
             // TODO Filter the list according to the city capabilities (ex:strategic ressources, water...)
-            for (let p of possible) {
-                // TODO If this unit can be built on this city
+            for (let unitInfo of possible) {
                 let deactivated = null;
+                // If this tribe has enough gold
+                if (this._tribe.productionManager.gold < unitInfo.cost) {
+                    deactivated = { reason: "Not enough gold" }
+                }
+                // If this city is not empty
                 if (this.hasUnit) {
                     deactivated = { reason: "A unit is already in the city" }
                 }
 
-                res.push(new ConstructionOrder({
-                    type: p,
+                res.push({
+                    unit: unitInfo,
                     deactivated: deactivated
-                }));
+                } as ConstructionOrder);
             }
 
             return res;

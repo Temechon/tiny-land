@@ -3,6 +3,14 @@ module CIV {
 
         private _gameScene: Game;
 
+        private goldTotal: Phaser.GameObjects.Text;
+        private foodTotal: Phaser.GameObjects.Text;
+        private scienceTotal: Phaser.GameObjects.Text;
+
+        private goldByTurn: Phaser.GameObjects.Text;
+        private foodByTurn: Phaser.GameObjects.Text;
+        private scienceByTurn: Phaser.GameObjects.Text;
+
         constructor() {
             super({ key: 'gameui' });
         }
@@ -11,8 +19,10 @@ module CIV {
 
             //  Grab a reference to the Game Scene
             this._gameScene = this.scene.get('game') as Game;
+
+            this._gameScene.events.on('updateui', this.updateUI.bind(this))
+
             let hud = this.add.container();
-            // hud.depth = Constants.LAYER.HUD;
 
 
             let titlestyle = {
@@ -20,7 +30,12 @@ module CIV {
                 fontFamily: Constants.FONT.NUMBERS,
                 color: "#fff",
                 stroke: '#000',
-                strokeThickness: 5,
+                strokeThickness: 5 * ratio,
+            };
+            let style = {
+                fontSize: Helpers.font(20),
+                fontFamily: Constants.FONT.NUMBERS,
+                color: "#fff"
             };
 
             let gold = this.make.image({
@@ -31,13 +46,13 @@ module CIV {
             gold.scale = ratio;
             let food = this.make.image({
                 x: gold.x,
-                y: gold.y + gold.height,
+                y: gold.y + gold.displayHeight,
                 key: 'food'
             });
             food.scale = ratio;
             let science = this.make.image({
                 x: food.x,
-                y: food.y + food.height,
+                y: food.y + food.displayHeight,
                 key: 'research'
             });
             science.scale = ratio;
@@ -46,18 +61,22 @@ module CIV {
             hud.add(food);
             hud.add(science);
 
-            let goldNb = this.add.text(150 * ratio, gold.y, this._gameScene.player.getProductionOf(ResourceType.Gold).toString(), titlestyle).setOrigin(0.5, 0.5);
-            let foodNb = this.add.text(150 * ratio, food.y, this._gameScene.player.getProductionOf(ResourceType.Food).toString(), titlestyle).setOrigin(0.5, 0.5);
-            let scienceNb = this.add.text(150 * ratio, science.y, this._gameScene.player.getProductionOf(ResourceType.Science).toString(), titlestyle).setOrigin(0.5, 0.5);
-            hud.add(goldNb);
-            hud.add(foodNb);
-            hud.add(scienceNb);
+            this.goldTotal = this.add.text(150 * ratio, gold.y, '', titlestyle).setOrigin(0.5, 0.5);
+            this.foodTotal = this.add.text(150 * ratio, food.y, '', titlestyle).setOrigin(0.5, 0.5);
+            this.scienceTotal = this.add.text(150 * ratio, science.y, '', titlestyle).setOrigin(0.5, 0.5);
 
-            this._gameScene.events.on('uiupdate', () => {
-                goldNb.text = this._gameScene.player.getProductionOf(ResourceType.Gold).toString();
-                foodNb.text = this._gameScene.player.getProductionOf(ResourceType.Food).toString();
-                scienceNb.text = this._gameScene.player.getProductionOf(ResourceType.Science).toString();
-            })
+            this.goldByTurn = this.add.text(210 * ratio, gold.y, '', style).setOrigin(0.5, 0.25);
+            this.foodByTurn = this.add.text(210 * ratio, food.y, '', style).setOrigin(0.5, 0.25);
+            this.scienceByTurn = this.add.text(210 * ratio, science.y, '', style).setOrigin(0.5, 0.25);
+            this.updateUI();
+
+            hud.add(this.goldTotal);
+            hud.add(this.foodTotal);
+            hud.add(this.scienceTotal);
+
+            hud.add(this.goldByTurn);
+            hud.add(this.foodByTurn);
+            hud.add(this.scienceByTurn);
 
             let menu = null;
             this._gameScene.events.on('circularmenuon', (config: {
@@ -71,16 +90,16 @@ module CIV {
                 let actions = [];
                 for (let con of config.constructions) {
                     let deactivated = null;
-                    if (con.config.deactivated) {
-                        deactivated = con.config.deactivated;
+                    if (con.deactivated) {
+                        deactivated = con.deactivated;
                     }
                     let act = new Action({
                         scene: this,
-                        key: 'food',
-                        name: "WARRIOR",
+                        key: con.unit.key,
+                        name: con.unit.name,
                         deactivated: deactivated,
                         action: () => {
-                            config.city.produceUnit();
+                            config.city.produceUnit(con.unit);
                             menu.destroy();
                             menu = null;
                         }
@@ -96,7 +115,7 @@ module CIV {
                 });
             })
 
-            this._gameScene.events.on('circularmenuoff', (arg) => {
+            this._gameScene.events.on('circularmenuoff', () => {
                 if (menu) {
                     menu.destroy();
                     menu = null;
@@ -142,30 +161,21 @@ module CIV {
                 this._gameScene.nextTurn();
             }
             hud.add(endTurnButton);
-
-            // let test = new Button(this, {
-            //     w: 250 * ratio,
-            //     h: 80 * ratio,
-            //     backgroundColor: 0x1c4c68,
-            //     shadowColor: 0x07141c,
-            //     label: "Next turn",
-            //     fontSize: 25,
-            //     fontFamily: Constants.FONT.TEXT,
-            //     fontColor: 'white',
-            //     x: this.cameras.main.width / 2,
-            //     y: this.cameras.main.height - 100 * ratio
-            // })
-            // test.onInputDown = () => {
-            //     new Toast({
-            //         scene: this,
-            //         message: "Ceci est un message de test",
-            //         style: Toast.STYLE.WARNING
-            //     })
-            // }
-            // hud.add(test);
-
         }
 
+        updateUI() {
+            this.goldTotal.text = this._gameScene.player.productionManager.gold.toString();
+            this.foodTotal.text = this._gameScene.player.productionManager.food.toString();
+            this.scienceTotal.text = this._gameScene.player.productionManager.science.toString();
+
+            this.goldByTurn.text = "+" + this._gameScene.player.productionManager.goldByTurn.toString();
+            this.foodByTurn.text = "+" + this._gameScene.player.productionManager.foodByTurn.toString();
+            this.scienceByTurn.text = "+" + this._gameScene.player.productionManager.scienceByTurn.toString();
+        }
+
+        /**
+         * Transform a given position from the game scene to the UI scene
+         */
         getXY(g: Phaser.Types.Math.Vector2Like): Phaser.Types.Math.Vector2Like {
 
             let cam = this._gameScene.cameras.main

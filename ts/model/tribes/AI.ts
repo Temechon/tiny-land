@@ -15,7 +15,7 @@ module CIV {
             if (this.units.length < 4) {
                 let city = this.cities[0];
                 if (!city.hasUnit) {
-                    city.produceUnit();
+                    city.produceUnit(Game.INSTANCE.allUnits['warrior']);
                 }
             }
 
@@ -25,7 +25,7 @@ module CIV {
                     // Get its move range
                     let moverange = unit.map.getMoveRange({
                         from: unit.currentTile,
-                        range: unit.range
+                        range: unit.infos.range
                     })
 
                     // IF the unit can move
@@ -68,19 +68,6 @@ module CIV {
                     selectedTile = tiles.filter(t => t.name === path.nextTile)[0];
                 }
                 console.timeEnd('path')
-
-                // // Get distance to fog of war 
-                // let minDistanceToFog = Number.MAX_VALUE;
-
-
-                // for (let possibleMove of tiles) {
-                //     // Distance to fog of war
-                //     let distance = this.fogOfWar.getDistanceFrom(possibleMove);
-                //     if (distance < minDistanceToFog) {
-                //         minDistanceToFog = distance;
-                //         selectedTile = possibleMove;
-                //     }
-                // }
             }
             // If no selected tile, pck one randomly
             if (!selectedTile) {

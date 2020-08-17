@@ -27,11 +27,15 @@ module CIV {
             this.load.image('gold', 'assets/resources/gold.png');
             this.load.image('research', 'assets/resources/research.png');
 
+            // Icons - number of resources
             this.load.image('one', 'assets/resources/one.png');
             this.load.image('two', 'assets/resources/two.png');
             this.load.image('three', 'assets/resources/three.png');
             this.load.image('four', 'assets/resources/four.png');
             this.load.image('five', 'assets/resources/five.png');
+
+            // Units
+            this.load.json("units", "assets/jsons/units.json");
         }
 
         create() {

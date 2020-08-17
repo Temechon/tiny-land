@@ -21,7 +21,7 @@ module CIV {
             this._action = config.action;
 
             this._icon = this.scene.make.image({ x: 0, y: 0, key: config.key, add: false });
-            this._icon.scale = ratio * 2;
+            this._icon.scale = ratio;
             this.add(this._icon);
 
             if (config.deactivated) {
@@ -41,14 +41,14 @@ module CIV {
                 fontFamily: Constants.FONT.TEXT
             };
 
-            let name = this.scene.make.text({ x: 0, y: this._icon.height / 0.95, add: false, text: config.name, style: style });
+            let name = this.scene.make.text({ x: 0, y: this._icon.displayHeight / 0.95, add: false, text: config.name, style: style });
             name.setOrigin(0.5, 0.5);
 
             // Background
             let width = name.width * 1.5;
             let height = name.height * 1.5;
             let rect = new Phaser.Geom.Rectangle(-width / 2, -height / 2, width, height);
-            let graphics = this.scene.make.graphics({ x: 0, y: this._icon.height / 0.95, add: false });
+            let graphics = this.scene.make.graphics({ x: 0, y: this._icon.displayHeight / 0.95, add: false });
             graphics.fillStyle(0x000000);
             graphics.fillRoundedRect(rect.x, rect.y, rect.width, rect.height, 10 * ratio);
             this.add(graphics);

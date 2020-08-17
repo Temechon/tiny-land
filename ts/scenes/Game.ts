@@ -1,5 +1,8 @@
 module CIV {
 
+    interface Hashmap<T> {
+        [key: string]: T;
+    }
 
     export class Game extends Phaser.Scene {
 
@@ -7,6 +10,9 @@ module CIV {
         map: WorldMap;
         /** All tribes playing on this map */
         tribes: Array<Tribe> = [];
+
+        /** All units available in the game */
+        allUnits: Hashmap<UnitInfo> = {};
 
         public static INSTANCE: Game;
 
@@ -18,6 +24,13 @@ module CIV {
 
         create() {
 
+            // Load Units in memory
+            let units = this.cache.json.get('units');
+            for (let unit of units) {
+                this.allUnits[unit.key] = unit as UnitInfo;
+            }
+
+            // Display UI
             this.scene.run('gameui');
 
             // let graphics = this.add.graphics();
@@ -51,17 +64,6 @@ module CIV {
             }
 
             this.map.drawResourceLayer();
-
-            // this.input.keyboard.on('keyup-' + 'C', () => {
-            //     // this.player.visible = !this.player.visible;
-            //     // console.log(this.player.getProduccontionOf(ResourceType.Gold));  
-            //     // this.player.fogOfWar.visible = !this.player.fogOfWar.visible
-            //     city.influenceRadius++;
-            //     city.updateInfluenceRadius();
-            //     this.events.emit('uiupdate');
-            // });
-            // // this.cameras.main.zoom = 0.25;
-            // this.cameras.main.centerOn(city.worldposition.x, city.worldposition.y);
         }
 
         /**
@@ -75,12 +77,18 @@ module CIV {
 
             for (let tribe of this.tribes) {
                 tribe.resetAllUnits();
+
+                // Add ressources
+                tribe.productionManager.collect();
+
                 if (tribe instanceof AI) {
                     let ai = tribe as AI;
                     ai.play();
                 }
                 // TODO Finish here
             }
+
+            this.events.emit("updateui")
         }
     }
 }

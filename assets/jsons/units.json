@@ -1,0 +1,10 @@
+[
+    {
+        "name": "Warrior",
+        "key": "warrior",
+        "range": 1,
+        "strength": 3,
+        "cost": 5,
+        "vision": 1
+    }
+]
