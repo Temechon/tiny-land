@@ -26,6 +26,8 @@ module CIV {
             this.load.image('food', 'assets/resources/food.png');
             this.load.image('gold', 'assets/resources/gold.png');
             this.load.image('research', 'assets/resources/research.png');
+            // Special resources
+            this.load.image('mais', 'assets/resources/mais.png');
 
             // Icons - number of resources
             this.load.image('one', 'assets/resources/one.png');
@@ -36,6 +38,7 @@ module CIV {
 
             // Units
             this.load.json("units", "assets/jsons/units.json");
+            this.load.json("resources", "assets/jsons/resources.json");
         }
 
         create() {

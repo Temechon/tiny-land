@@ -167,6 +167,25 @@ module CIV {
 
             }, t => t.type === TileType.Forest || t.type === TileType.Mountain)
 
+
+            // Special resources
+            let resources = this.scene.cache.json.get('resources');
+            let numberOfTiles = this.getAllTiles(t => t.type === TileType.Land).length;
+            let totalNumberOfResources = numberOfTiles * 0.1;
+
+            let numberOfResources = Math.floor(totalNumberOfResources / resources.length);
+
+            for (let res of resources) {
+                let tiles = this.getEvenlyLocatedTiles(numberOfResources, Constants.MAP.SIZE * 2, t => t.type === TileType.Land);
+                for (let t of tiles) {
+                    let img = Game.INSTANCE.add.image(t.worldPosition.x, t.worldPosition.y, res.key);
+                    img.setOrigin(0.5, 1)
+                    t.assets.push(img);
+                    img.scale = ratio;
+                    img.depth = Constants.LAYER.TREES;
+                }
+            }
+
             // Draw all ressources on a container
             // this.updateResourceLayer();
 
@@ -518,7 +537,7 @@ module CIV {
                     }
                 }
             }
-            console.warn("Impossible to find evenly placed tiles")
+            console.warn("Impossible to find ", nb, "evenly placed tiles at distance", distanceMax)
             return res;
         }
     }
