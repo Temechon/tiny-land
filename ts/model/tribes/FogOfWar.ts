@@ -87,13 +87,31 @@ module CIV {
         /**
          * Returns the path distance (according to the landing graph) to the nearest fog cell, starting from the current cell
          */
-        getDistanceFrom(tile: Tile): number {
-            return Math.min(
-                ...this.coords
-                    .map(t => Game.INSTANCE.map.getPath(t.name, tile.name).length)
-                    .filter(nb => nb > 0)
-            );
-        }
+        getDistanceFrom(tile: Tile): { distance: number, nextTile: string } {
 
+            let axialDistance = this.coords.map(fog => {
+                return {
+                    fogname: fog.name,
+                    distance: HexGrid.axialDistance(fog.rq.q, fog.rq.r, tile.rq.q, tile.rq.r)
+                }
+            });
+
+            axialDistance = axialDistance.sort((a, b) => {
+                return a.distance - b.distance
+            });
+
+            for (let i = 0; i < axialDistance.length; i++) {
+                let axx = axialDistance[i];
+                // If a path exist between 'tile' and this fog tile, return it
+                let path = Game.INSTANCE.map.getPath(tile.name, axx.fogname);
+
+                if (path.length > 0) {
+                    return { distance: axx.distance, nextTile: path[0] };
+                }
+            }
+
+            // NO path exist to the fog of war
+            return null;
+        }
     }
 }

@@ -15,10 +15,6 @@ abstract class Constants {
         /** Noise parameters for water */
         WATER: {
             NOISE: {
-                // min: 0,
-                // max: 100,
-                // octaves: 2,
-                // frequency: 0.08
                 min: 0,
                 max: 200,
                 octaves: 1,

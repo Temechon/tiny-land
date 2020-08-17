@@ -52,6 +52,13 @@ module CIV {
             this.currentTile.addClickable(this);
         }
 
+        /**
+         * True if this unit can move
+         */
+        get canMove(): boolean {
+            return this.state === UnitState.IDLE;
+        }
+
         setWaitingNextTurn() {
             this.state = UnitState.WAITING_NEXT_TURN;
         }
@@ -78,7 +85,7 @@ module CIV {
 
             if (this.state === UnitState.WAITING_NEXT_TURN) {
                 // Only display something like stat, but can't move
-            } else if (this.state === UnitState.IDLE) {
+            } else if (this.canMove) {
                 this.state = UnitState.ACTIVATED;
 
                 // Display move range
@@ -101,9 +108,12 @@ module CIV {
         }
 
         /**
-         * Move this unit to the given tile.
+         * Move this unit to the given tile. IF this unit cannot move, return.
          */
         move(tile: Tile) {
+            if (!this.canMove) {
+                return;
+            }
             this.state = UnitState.MOVING;
 
             Game.INSTANCE.add.tween({

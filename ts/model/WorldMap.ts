@@ -98,7 +98,7 @@ module CIV {
             }
 
             // Arctic on north and south of the map (r = +-MAP.SIZE)
-            let nbLineTop = 2;
+            let nbLineTop = 1;
             let probamin = 1 / nbLineTop;
 
             for (let i = 0; i <= nbLineTop; i++) {
@@ -152,7 +152,6 @@ module CIV {
             // TREES /MOUNTAINS !
             this.doForAllTiles(t => {
                 let img;
-                console.log(t.rq)
                 if (t.type === TileType.Forest) {
                     img = Game.INSTANCE.add.image(t.worldPosition.x, t.worldPosition.y, 'tree');
                     img.setOrigin(0.5, 0.75)
@@ -211,7 +210,7 @@ module CIV {
                 return;
             }
 
-            console.time("mask drawing")
+            // console.time("mask drawing")
             this.resourceLayer.clearMask(true);
             // Mask
             let mask = Game.INSTANCE.make.container({ x: 0, y: 0 });
@@ -222,7 +221,7 @@ module CIV {
             }, t => !Game.INSTANCE.player.isInFogOfWar(t));
 
             this.resourceLayer.mask = new Phaser.Display.Masks.BitmapMask(Game.INSTANCE, mask);
-            console.timeEnd("mask drawing")
+            // console.timeEnd("mask drawing")
 
         }
 
@@ -450,7 +449,9 @@ module CIV {
          * Returns the path (as tile name) between the two given tiles.
          */
         getPath(from: string, to: string): Array<string> {
+            // console.time("find path")
             let path = this._landgraph.shortestPath(from, to);
+            // console.timeEnd("find path")
             return path;
         }
 

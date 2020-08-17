@@ -59,6 +59,13 @@ module CIV {
         }
 
         /**
+         * Returns true if this city already has a unit
+         */
+        get hasUnit(): boolean {
+            return this._tile.hasUnit;
+        }
+
+        /**
          * Produce a unit on this city.
          * TODO Remove resources from the tribe to produce this unit
          */
@@ -89,7 +96,7 @@ module CIV {
             for (let p of possible) {
                 // TODO If this unit can be built on this city
                 let deactivated = null;
-                if (this._tile.hasUnit) {
+                if (this.hasUnit) {
                     deactivated = { reason: "A unit is already in the city" }
                 }
 

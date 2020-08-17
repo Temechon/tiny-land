@@ -12,19 +12,28 @@ module CIV {
          * For now, it creates a unit and explore the world with it.
          */
         play() {
-            if (this.units.length === 0) {
+            if (this.units.length < 4) {
                 let city = this.cities[0];
-                city.produceUnit();
+                if (!city.hasUnit) {
+                    city.produceUnit();
+                }
             }
-            else {
-                let warrior = this.units[0];
-                // Get its move range
-                let moverange = warrior.map.getMoveRange({
-                    from: warrior.currentTile,
-                    range: warrior.range
-                })
-                let nextTile = this._chooseTile(warrior, moverange);
-                warrior.move(nextTile);
+
+            // All unit explore the world
+            for (let unit of this.units) {
+                if (unit.canMove) {
+                    // Get its move range
+                    let moverange = unit.map.getMoveRange({
+                        from: unit.currentTile,
+                        range: unit.range
+                    })
+
+                    // IF the unit can move
+                    if (moverange.length !== 0) {
+                        let nextTile = this._chooseTile(unit, moverange);
+                        unit.move(nextTile);
+                    }
+                }
             }
         }
 
@@ -51,17 +60,27 @@ module CIV {
             }
 
             if (maxFogRemoved < 1) {
+                console.time('path')
+                let path = this.fogOfWar.getDistanceFrom(unit.currentTile);
+                if (path) {
+                    console.log("selected tile here");
 
-                // Get distance to fog of war
-                let minDistanceToFog = Number.MAX_VALUE;
-                for (let possibleMove of tiles) {
-                    // Distance to fog of war
-                    let distance = this.fogOfWar.getDistanceFrom(possibleMove);
-                    if (distance < minDistanceToFog) {
-                        minDistanceToFog = distance;
-                        selectedTile = possibleMove;
-                    }
+                    selectedTile = tiles.filter(t => t.name === path.nextTile)[0];
                 }
+                console.timeEnd('path')
+
+                // // Get distance to fog of war 
+                // let minDistanceToFog = Number.MAX_VALUE;
+
+
+                // for (let possibleMove of tiles) {
+                //     // Distance to fog of war
+                //     let distance = this.fogOfWar.getDistanceFrom(possibleMove);
+                //     if (distance < minDistanceToFog) {
+                //         minDistanceToFog = distance;
+                //         selectedTile = possibleMove;
+                //     }
+                // }
             }
             // If no selected tile, pck one randomly
             if (!selectedTile) {
