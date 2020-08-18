@@ -143,13 +143,20 @@ module CIV {
          * If no tile is given, the vision is from the unit currentile
          */
         getVision(tile?: Tile): Array<Tile> {
+            // Increase if the unit is on a mountainlet currentRange = this.infos.range;
+            let vision = this.infos.vision;
+
+            if (this.currentTile.type === TileType.Mountain) {
+                vision++;
+            }
+
             if (!tile) {
                 tile = this.currentTile;
             }
 
             let res = [];
 
-            for (let i = this.infos.vision; i >= 1; i--) {
+            for (let i = vision; i >= 1; i--) {
                 res.push(...this.map.getTilesByAxialCoords(this.map.grid.ring(tile.rq.q, tile.rq.r, i)))
             }
             return res;
