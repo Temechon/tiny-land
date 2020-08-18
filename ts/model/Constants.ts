@@ -44,8 +44,8 @@ abstract class Constants {
     };
     public static LAYER = {
         FOG_OF_WAR: 20,
-        UNITS: 17,
-        RESOURCES_MAP: 10,
+        RESOURCES_MAP: 17,
+        UNITS: 10,
         TREES: 5,
         TRIBE_PLAYER: 3,
         TRIBE_ROOT: 2,
