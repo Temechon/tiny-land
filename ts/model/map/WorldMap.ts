@@ -170,13 +170,16 @@ module CIV {
 
             // Special resources
             let resources = this.scene.cache.json.get('resources');
-            let numberOfTiles = this.getAllTiles(t => t.type === TileType.Land).length;
+            let numberOfTiles = this.getAllTiles(t => t.isLand).length;
             let totalNumberOfResources = numberOfTiles * 0.1;
 
             let numberOfResources = Math.floor(totalNumberOfResources / resources.length);
 
-            for (let res of resources) {
-                let tiles = this.getEvenlyLocatedTiles(numberOfResources, Constants.MAP.SIZE * 2, t => t.type === TileType.Land);
+            for (let r of resources) {
+
+                let res = r as ResourceInfo;
+
+                let tiles = this.getEvenlyLocatedTiles(numberOfResources, Constants.MAP.SIZE * 2, t => res.canBeFoundOn.indexOf(t.type) !== -1);
                 for (let t of tiles) {
                     let img = Game.INSTANCE.add.image(t.worldPosition.x, t.worldPosition.y, res.key);
                     img.setOrigin(0.5, 1)

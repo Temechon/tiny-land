@@ -2,6 +2,10 @@
     {
         "name": "Wheat",
         "key": "mais",
-        "canBeFoundOn": "land"
+        "canBeFoundOn": [
+            "land",
+            "forest",
+            "toundra"
+        ]
     }
 ]

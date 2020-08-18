@@ -68,6 +68,10 @@ module CIV {
             return this.type === TileType.Water || this.type === TileType.DeepWater;
         }
 
+        get isLand(): boolean {
+            return this.type === TileType.Land
+        }
+
         /**
          * Returns true if the given vertex is shared with this tile
          */
