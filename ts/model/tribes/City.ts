@@ -16,7 +16,7 @@ module CIV {
         /** The number of hexagon around this city that can be used by this city */
         public influenceRadius: number = 1;
         /** The tetxure used to display the influence */
-        private _influenceTexture: Phaser.GameObjects.RenderTexture;
+        private _influenceTexture: Phaser.GameObjects.Graphics;
         /** All tiles in the influence area of this city */
         private _influenceTiles: Tile[] = [];
 
@@ -47,7 +47,6 @@ module CIV {
 
             // Draw its influence area
             this.updateInfluenceRadius();
-            this.add(this._influenceTexture)
             this._tile.addClickable(this);
         }
 
@@ -127,61 +126,121 @@ module CIV {
         updateInfluenceRadius() {
 
             if (this._influenceTexture) {
-                this._influenceTexture.clearMask(true);
                 this._influenceTexture.destroy();
                 this.remove(this._influenceTexture);
             }
+            // Clear the array of influence tiles
+            for (let t of this._influenceTiles) {
+                t.belongsTo = null;
+            }
             this._influenceTiles = []
 
-            let ring: Array<Tile> = [];
             let r = this.influenceRadius;
-
-            while (r > 0) {
-                ring.push(...this.worldmap.getTilesByAxialCoords(
-                    this.worldmap.grid.ring(
-                        this._tile.rq.q, this._tile.rq.r, r
-                    )
-                ))
-                r--;
-            }
+            let ring = this.worldmap.getRing(this._tile, r);
             ring.push(this._tile)
-            // TODO Filter hex fron tome influence radius that are in another city
 
-            // Create a container that contains all hex to draw
-            let container = Game.INSTANCE.make.container({ x: this._tile.worldPosition.x, y: this._tile.worldPosition.y, add: false })//.setVisible(false);
+            ring = ring.filter(t => t.belongsTo === null);
 
-            let mask = Game.INSTANCE.make.container({ x: this._tile.worldPosition.x, y: this._tile.worldPosition.y, add: false });
+            for (let r of ring) {
+                this._influenceTiles.push(r);
+            }
+            this._influenceTiles.push(this._tile);
 
-            for (let t of ring) {
-                // Add this tile to the influence array
-                this._influenceTiles.push(t);
-                let image = t.getHexPrint(this._tribe.color);
-                image.x -= this._tile.worldPosition.x;
-                image.y -= this._tile.worldPosition.y;
-                image.scale *= 1.1
-                // image.alpha = 0.5
-                container.add(image);
-
-                image = t.getHexPrint(0x000000);
-                image.x -= this._tile.worldPosition.x;
-                image.y -= this._tile.worldPosition.y;
-                mask.add(image);
+            for (let t of this._influenceTiles) {
+                t.belongsTo = this;
             }
 
+            // Get all vertices
+            let allVertices: Vertex[] = [];
+            for (let t of ring) {
+                allVertices.push(...t.vertices);
+            }
 
-            let size = Helpers.getSize(container, this._tile.displayWidth, this._tile.displayHeight);
+            // Kepp all vertices shared by two tiles or less
+            allVertices = allVertices.filter(v => Tile.getTilesSharingVertex(v, ring).length <= 2)
 
-            let rt = Game.INSTANCE.make.renderTexture({ x: this._tile.worldPosition.x, y: this._tile.worldPosition.y, width: size.width * 2, height: size.height * 2 })
-            rt.setOrigin(0.5, 0.5);
-            rt.draw(container, size.width, size.height)
-            container.iterate(c => c.destroy());
-            container.destroy();
+            let points = [];
 
-            rt.mask = new Phaser.Display.Masks.BitmapMask(Game.INSTANCE, mask);
-            rt.mask.invertAlpha = true;
+            for (let v of allVertices) {
+                points.push({
+                    x: v.coords.x + this._tile.parentContainer.x,
+                    y: v.coords.y + this._tile.parentContainer.y
+                });
+            }
+            // Remove duplicates points
+            for (let i = 0; i < points.length; i++) {
+                let p = points[i];
 
-            this._influenceTexture = rt;
+                for (let pp of points) {
+                    let dist = Phaser.Math.Distance.BetweenPointsSquared(p, pp)
+                    if (dist < 100 * ratio && dist > 0) {
+                        points.splice(i, 1);
+                        i--;
+                        break;
+                    }
+                }
+            }
+
+            // Sort vertices
+            let sortedVertices = [points[0]];
+            points.shift();
+
+            for (let i = 0; i < points.length; i++) {
+                let last = sortedVertices[sortedVertices.length - 1];
+
+                let vertexIndex;
+                let nearest;
+                let minDist = Number.MAX_VALUE
+                for (let j = 0; j < points.length; j++) {
+                    let r = points[j];
+
+                    let distToLast = Phaser.Math.Distance.BetweenPointsSquared(r, last);
+                    if (distToLast > 0 && distToLast < minDist) {
+                        nearest = r;
+                        minDist = distToLast
+                        vertexIndex = j;
+                    }
+                }
+                sortedVertices.push(nearest)
+                points.splice(vertexIndex, 1);
+                i--;
+            }
+            // Draw it
+            let g = Game.INSTANCE.make.graphics({ x: 0, y: 0, add: false });
+            g.depth = 100;
+
+            let path = new Phaser.Curves.Path(sortedVertices[0].x, sortedVertices[0].y);
+            sortedVertices.push(sortedVertices[0])
+            sortedVertices.push(sortedVertices[1])
+            path.splineTo(sortedVertices);
+            g.lineStyle(20 * ratio, this._tribe.color);
+            path.draw(g, sortedVertices.length * 100);
+            this._influenceTexture = g;
             this.add(this._influenceTexture);
+        }
+
+        /**
+         * True if a city can be created on the current tile with the given tribe
+         *  (no other city, not too close of another city of the same tribe (at least 2 tiles), not in an influence zone of another city
+         */
+        static canCreateHere(tile: Tile, tribe: Tribe): boolean {
+            // Not on another city
+            if (tile.hasCity) {
+                return false;
+            }
+            // In an influence zone of a city (any tribe)
+            if (tile.belongsTo) {
+                return false;
+            }
+            // Not too close of another city of the same tribe (at least a distance of 2 tiles - then a city should not be in ring(1))
+            let around = Game.INSTANCE.map.getRing(tile, 2);
+            for (let t of around) {
+                if (t.hasCity && t.belongsTo._tribe === tribe) {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         activate() {
@@ -201,6 +260,7 @@ module CIV {
 
         /**
         * The vision of this city is the set of hex in this influence zone
+        * TODO redo this with a parameter "bonus" when we create a new city
         */
         getVision(): Array<Tile> {
             return this._influenceTiles;
@@ -209,6 +269,11 @@ module CIV {
         deactivate() {
             this.scene.events.emit("circularmenuoff");
             console.log("CITY DEACTIVATED");
+        }
+
+        destroy() {
+            this._influenceTexture.destroy();
+            super.destroy();
         }
 
     }

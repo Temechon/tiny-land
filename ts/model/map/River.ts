@@ -7,7 +7,7 @@ module CIV {
         tiles: Tile[] = [];
 
         /** The list of points the river go through */
-        vertices: Phaser.Geom.Point[] = [];
+        vertices: Phaser.Types.Math.Vector2Like[] = [];
 
         /** The grahics where the river is drawn */
         graphics: Phaser.GameObjects.Graphics;
@@ -55,21 +55,6 @@ module CIV {
 
                 currentVertex = nextTile.getVertex(v);
             }
-
-            // Draw the river as Beziers curves
-            let path = new Phaser.Curves.Path(this.vertices[0].x, this.vertices[0].y);
-            let points = this.vertices.map(p => new Phaser.Math.Vector2(p.x, p.y))
-            points.push(new Phaser.Math.Vector2(river.end.x, river.end.y));
-            path.splineTo(points);
-            this.graphics.lineStyle(30 * ratio, 0x1B618C);
-            path.draw(this.graphics);
-
-            path = new Phaser.Curves.Path(this.vertices[0].x, this.vertices[0].y);
-            points = this.vertices.map(p => new Phaser.Math.Vector2(p.x, p.y))
-            path.splineTo(points);
-            this.graphics.lineStyle(8 * ratio, 0x165682);
-            path.draw(this.graphics);
-
             // Get all neighbours of all river tiles that are not water and not already in the neighbourhood
             // including the river tiles
             let neighbourshood: Tile[] = [];
@@ -95,6 +80,21 @@ module CIV {
                 }
             }
             this.tiles = res;
+
+            // Draw the river as Beziers curves
+            let path = new Phaser.Curves.Path(this.vertices[0].x, this.vertices[0].y);
+            let points = this.vertices.map(p => new Phaser.Math.Vector2(p.x, p.y))
+            points.push(new Phaser.Math.Vector2(river.end.x, river.end.y));
+            path.splineTo(points);
+            this.graphics.lineStyle(30 * ratio, 0x5a8bd8);
+            path.draw(this.graphics, 10 * this.tiles.length);
+
+
+            path = new Phaser.Curves.Path(this.vertices[0].x, this.vertices[0].y);
+            points = this.vertices.map(p => new Phaser.Math.Vector2(p.x, p.y))
+            path.splineTo(points);
+            this.graphics.lineStyle(8 * ratio, 0xafe1f7);
+            path.draw(this.graphics, 10 * this.tiles.length);
         }
 
         getClosestTo(vex: Vertex, vertices: Vertex[]): Vertex {

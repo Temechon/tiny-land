@@ -5,7 +5,7 @@ module CIV {
      */
     export class Tribe extends Phaser.GameObjects.Container {
 
-        static DEBUG_FOG_OF_WAR_ON = true;
+        static DEBUG_FOG_OF_WAR_ON = false;
 
         public cities: City[] = [];
         public units: Unit[] = [];
@@ -127,6 +127,17 @@ module CIV {
 
         //     return res;
         // }
+        destroy() {
+            for (let c of this.cities) {
+                c.destroy();
+            }
+
+            for (let u of this.units) {
+                u.destroy();
+            }
+            this.fogOfWar.destroy();
+            super.destroy();
+        }
 
     }
 

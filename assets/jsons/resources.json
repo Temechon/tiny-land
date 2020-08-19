@@ -1,11 +1,12 @@
 [
     {
         "name": "Wheat",
-        "key": "mais",
+        "key": "hex_wheat",
         "canBeFoundOn": [
-            "land",
-            "forest",
-            "toundra"
-        ]
+            "land"
+        ],
+        "bonus": {
+            "Food": "+2"
+        }
     }
 ]

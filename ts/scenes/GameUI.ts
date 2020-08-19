@@ -161,6 +161,24 @@ module CIV {
                 this._gameScene.nextTurn();
             }
             hud.add(endTurnButton);
+
+            // new map
+            let newmap = new Button(this, {
+                w: 250 * ratio,
+                h: 80 * ratio,
+                backgroundColor: 0x1c4c68,
+                shadowColor: 0x07141c,
+                label: "New map",
+                fontSize: 25,
+                fontFamily: Constants.FONT.TEXT,
+                fontColor: 'white',
+                x: this.cameras.main.width / 2,
+                y: this.cameras.main.height - 100 * ratio
+            })
+            newmap.onInputDown = () => {
+                this._gameScene.resetMap();
+            }
+            hud.add(newmap);
         }
 
         updateUI() {

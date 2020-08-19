@@ -1,6 +1,6 @@
 module CIV {
 
-    export type Vertex = { coords: Phaser.Geom.Point, neighbours: number[] };
+    export type Vertex = { coords: Phaser.Types.Math.Vector2Like, neighbours: number[] };
     export type RQ = { r: number, q: number };
 
     export class Tile extends Phaser.GameObjects.Image {
@@ -25,6 +25,9 @@ module CIV {
         private _onIt: IClickable[] = [];
         /** The index in the 'onIt' array of the stuff that is currently activated */
         private currentlyActivatedIndex: number = 0;
+
+        /** The city this tile belongs to. Can be null if the tile is not in an influence zone of a city */
+        belongsTo: City = null;
 
         /** The list of sprites added on this tile (trees, rocks...) */
         assets: Array<Phaser.GameObjects.Image> = [];
@@ -51,10 +54,10 @@ module CIV {
 
         }
 
-        get worldPosition(): Phaser.Geom.Point {
+        get worldPosition(): Phaser.Types.Math.Vector2Like {
             let x = this.parentContainer.x + this.x;
             let y = this.parentContainer.y + this.y;
-            return new Phaser.Geom.Point(x, y);
+            return { x: x, y: y };
         }
 
         getStorageXY(): { x: number, y: number } {
@@ -72,25 +75,44 @@ module CIV {
             return this.type === TileType.Land
         }
 
+        get vertices(): Array<Vertex> {
+            return this._vertices;
+        }
+
         /**
          * Returns true if the given vertex is shared with this tile
          */
         hasVertex(vex: Vertex): boolean {
             for (let v of this._vertices) {
-                if (Phaser.Math.Distance.BetweenPointsSquared(vex.coords, v.coords) < 5 * ratio) {
+                if (Phaser.Math.Distance.BetweenPointsSquared(vex.coords, v.coords) < 100 * ratio) {
                     return true;
                 }
             }
             return false;
         }
 
-        hasVertexAsPoint(p: Phaser.Geom.Point): boolean {
+        hasVertexAsPoint(p: Phaser.Types.Math.Vector2Like): boolean {
             for (let v of this._vertices) {
-                if (Phaser.Math.Distance.BetweenPointsSquared(p, v.coords) < 5 * ratio) {
+                if (Phaser.Math.Distance.BetweenPointsSquared(p, v.coords) < 100 * ratio) {
                     return true;
                 }
             }
             return false;
+        }
+
+        /**
+         * Returns all tiles from the given array that share the given vertex
+         */
+        static getTilesSharingVertex(vex: Vertex, tiles: Tile[]): Tile[] {
+            let res = [];
+
+            for (let t of tiles) {
+                if (t.getVertex(vex)) {
+                    res.push(t);
+                }
+            }
+
+            return res;
         }
 
         /**
@@ -98,7 +120,7 @@ module CIV {
          */
         getVertex(vex: Vertex): Vertex {
             for (let v of this._vertices) {
-                if (Phaser.Math.Distance.BetweenPointsSquared(vex.coords, v.coords) < 5 * ratio) {
+                if (Phaser.Math.Distance.BetweenPointsSquared(vex.coords, v.coords) < 100 * ratio) {
                     return v;
                 }
             }
@@ -155,14 +177,29 @@ module CIV {
             }
         }
 
+        /**
+         * TODO replace the number sprites by a bitmap font
+         */
         _drawResource(type: ResourceType, nb: number, p: Phaser.Types.Math.Vector2Like, rootContainer: Phaser.GameObjects.Container) {
             let container = Game.INSTANCE.make.container({ x: 0, y: 0, add: false });
             let keys = ['gold', 'food', 'research'];
-            let nbKeys = ['one', 'two', 'three', 'four', 'five'];
             let s = Game.INSTANCE.make.image({ x: p.x, y: p.y, key: keys[type], add: false });
             s.scale = ratio;
             container.add(s);
-            let nbSprite = Game.INSTANCE.make.image({ x: p.x + 15 * ratio, y: p.y + 15 * ratio, key: nbKeys[nb - 1], add: false });
+
+
+            let nbSprite = Game.INSTANCE.make.bitmapText({
+                x: p.x + 15 * ratio,
+                y: p.y + 15 * ratio,
+                font: "font",
+                text: nb.toString(),
+                // size: 32 * ratio,
+                add: false
+            })
+                .setOrigin(0.5);
+
+
+            // let nbSprite = Game.INSTANCE.make.image({ x: p.x + 15 * ratio, y: p.y + 15 * ratio, key: nbKeys[nb - 1], add: false });
             nbSprite.scale = ratio;
             container.add(nbSprite);
 
@@ -187,7 +224,7 @@ module CIV {
             let res: Vertex[] = [];
             for (let v of this._vertices) {
                 for (let ov of otherVertices) {
-                    if (Phaser.Math.Distance.BetweenPointsSquared(v.coords, ov.coords) < 5 * ratio) {
+                    if (Phaser.Math.Distance.BetweenPointsSquared(v.coords, ov.coords) < 100 * ratio) {
                         res.push(v);
                     }
                 }
@@ -318,6 +355,11 @@ module CIV {
          */
         public get hasUnit(): boolean {
             return this._onIt.filter(s => s instanceof Unit).length > 0;
+        }/** 
+         * Returns true if this tile has a city on it, false otherwise
+         */
+        public get hasCity(): boolean {
+            return this._onIt.filter(s => s instanceof City).length > 0;
         }
         public get isEmpty(): boolean {
             return this._onIt.length === 0;
@@ -371,6 +413,13 @@ module CIV {
 
         equals(other: Tile) {
             return this.rq.q === other.rq.q && this.rq.r === other.rq.r;
+        }
+
+        destroy() {
+            for (let ass of this.assets) {
+                ass.destroy();
+            }
+            super.destroy();
         }
     }
 

@@ -16,18 +16,27 @@ module CIV {
         preload() {
             this.load.image('hex', 'assets/hex.png');
             this.load.image('toundra', 'assets/hex_toundra.png');
+            this.load.image('land', 'assets/hex_land.png');
+            this.load.image('land2', 'assets/hex_land2.png');
+            this.load.image('water', 'assets/hex_water.png');
+            this.load.image('deepwater', 'assets/hex_deepwater.png');
+            this.load.image('forest', 'assets/hex_forest.png');
 
             this.load.image('tree', 'assets/tree.png');
             this.load.image('mountain', 'assets/mountain.png');
 
             this.load.image('city', 'assets/city.png');
-            this.load.image('warrior', 'assets/warrior.png');
+
+            // Units
+            this.load.image('warrior', 'assets/units/warrior.png');
+            this.load.image('settler', 'assets/units/settler.png');
+            this.load.image('settler_create', 'assets/units/settler_create.png');
 
             this.load.image('food', 'assets/resources/food.png');
             this.load.image('gold', 'assets/resources/gold.png');
             this.load.image('research', 'assets/resources/research.png');
             // Special resources
-            this.load.image('mais', 'assets/resources/mais.png');
+            this.load.image('hex_wheat', 'assets/resources/hex_wheat.png');
 
             // Icons - number of resources
             this.load.image('one', 'assets/resources/one.png');
@@ -39,6 +48,9 @@ module CIV {
             // Units
             this.load.json("units", "assets/jsons/units.json");
             this.load.json("resources", "assets/jsons/resources.json");
+
+            this.load.bitmapFont('font', 'assets/fonts/font.png', 'assets/fonts/font.xml');
+
         }
 
         create() {

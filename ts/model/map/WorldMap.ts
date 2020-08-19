@@ -8,7 +8,7 @@ module CIV {
         nbTiles: number;
 
         /** The hex grid coordinates (q,r) */
-        public grid: HexGrid;
+        private _grid: HexGrid;
 
         /** The walking graph for land units */
         private _landgraph: Graph;
@@ -22,11 +22,17 @@ module CIV {
         constructor(scene: Phaser.Scene) {
             super(scene);
 
-            this.grid = new HexGrid(99, true);
+            this.scene.add.existing(this);
+            this.x = (this.scene.game.config.width as number) / 2;
+            this.y = (this.scene.game.config.height as number) / 2;
+
+        }
+        create() {
+            this._grid = new HexGrid(97, true);
 
             this._landgraph = new Graph();
 
-            let mapCoords = this.grid.hexagon(0, 0, Constants.MAP.SIZE, true);
+            let mapCoords = this._grid.hexagon(0, 0, Constants.MAP.SIZE, true);
             this.nbTiles = mapCoords.length;
             this.depth = Constants.LAYER.MAP.ROOT;
 
@@ -37,7 +43,7 @@ module CIV {
             let noiseMountainGen = new FastSimplexNoise(Constants.MAP.MOUNTAIN.NOISE);
             for (let c of mapCoords) {
 
-                let center = this.grid.getCenterXY(c.q, c.r);
+                let center = this._grid.getCenterXY(c.q, c.r);
 
                 let tile = new Tile({
                     scene: this.scene,
@@ -48,39 +54,37 @@ module CIV {
                     key: 'hex',
                     map: this
                 });
-                tile.setTint(0xA4BF69);
-                tile.type = TileType.Land;
                 this.push(tile);
-
                 this.add(tile);
 
                 let noise = noiseGen.scaled([c.q, c.r]);
                 let noiseForest = noiseForestGen.scaled([c.q, c.r]);
                 let noiseMountain = noiseMountainGen.scaled([c.q, c.r]);
 
-                if (noise < 65) {
+                if (noise < Constants.MAP.DEEPWATER) {
                     tile.type = TileType.DeepWater
-                    tile.setTint(0x053959)
+                    tile.setTexture('deepwater')
+                    // tile.setTint(0x053959)
                     Resource.setResources(tile);
                     continue
                 }
 
                 if (noise < Constants.MAP.WATER.THRESHOLD) {
-                    tile.setTint(0x1B618C);
+                    // tile.setTint(0x1B618C);
+                    tile.setTexture('water')
                     tile.type = TileType.Water;
                     // Set resources for this tile
                     Resource.setResources(tile);
                     continue
                 }
 
-                tile.setTint(0xA4BF69);
-                tile.type = TileType.Land;
+                // tile.setTint(0xA4BF69);
+                // tile.type = TileType.Land;
                 // Set resources for this tile
-                Resource.setResources(tile);
 
                 if (noiseForest < Constants.MAP.FOREST.THRESHOLD) {
-                    // tile.setTexture('forest')
-                    tile.setTint(0x5E7348)
+                    tile.setTexture('forest')
+                    // tile.setTint(0x5E7348)
                     tile.type = TileType.Forest;
                     // Set resources for this tile
                     Resource.setResources(tile);
@@ -95,19 +99,27 @@ module CIV {
                     continue
                 }
 
+                if (chance.floating({ min: 0, max: 1 }) < 0.2) {
+                    tile.setTexture('land2')
+                } else {
+                    tile.setTexture("land");
+                }
+                tile.type = TileType.Land;
+                Resource.setResources(tile);
+
             }
 
             // Arctic on north and south of the map (r = +-MAP.SIZE)
-            let nbLineTop = 1;
+            let nbLineTop = 3;
             let probamin = 1 / nbLineTop;
 
             for (let i = 0; i <= nbLineTop; i++) {
                 let allTop = this.getAllTiles(t => t.rq.r === Constants.MAP.SIZE - i);
                 allTop.push(...this.getAllTiles(t => t.rq.r === -Constants.MAP.SIZE + i));
                 for (let t of allTop) {
-                    if (chance.floating({ min: 0, max: 1 }) < (1 - probamin * (i - 1))) {
-                        t.setTexture('toundra');
+                    if (chance.floating({ min: 0, max: 1 }) < (1 - probamin * i)) {
                         t.setTint(0xffffff)
+                        t.setTexture('toundra');
                         t.type = TileType.Toundra;
                     }
                 }
@@ -116,37 +128,35 @@ module CIV {
             // Add this tile to the land graph
             this.doForAllTiles(t => this.addTileToGraph(t), t => !t.isWater)
 
-            this.scene.add.existing(this);
-            this.x = (this.scene.game.config.width as number) / 2;
-            this.y = (this.scene.game.config.height as number) / 2;
-
             // Create rivers
-            this.doForAllTiles(t => t.computePointsAndEdges());
+            try {
+                this.doForAllTiles(t => t.computePointsAndEdges());
+                let nbRivers = Math.floor(this.nbTiles / 50);
+                console.log("MAP -", nbRivers, "rivers");
+                let starts = this.getEvenlyLocatedTiles(
+                    nbRivers,
+                    Constants.MAP.SIZE / 2,
+                    this.isRiverStartingLocationCorrect.bind(this, Constants.MAP.SIZE / 4)
+                )
 
-            let nbRivers = Math.floor(this.nbTiles / 50);
-            console.log("MAP -", nbRivers, "rivers");
+                let riversGraphics = Game.INSTANCE.make.graphics({ x: 0, y: 0, add: false });
+                riversGraphics.depth = Constants.LAYER.MAP.RIVER;
 
-            let starts = this.getEvenlyLocatedTiles(
-                nbRivers,
-                Constants.MAP.SIZE / 2,
-                this.isRiverStartingLocationCorrect.bind(this, Constants.MAP.SIZE / 4)
-            )
-
-            let graphics = Game.INSTANCE.make.graphics({ x: 0, y: 0, add: false });
-            graphics.depth = Constants.LAYER.MAP.RIVER;
-
-            for (let s of starts) {
-                let river = new River({
-                    map: this,
-                    startTile: s,
-                    graphics: graphics
-                });
-                this._rivers.push(river);
-                for (let t of river.tiles) {
-                    t.hasRiver = true;
+                for (let s of starts) {
+                    let river = new River({
+                        map: this,
+                        startTile: s,
+                        graphics: riversGraphics
+                    });
+                    this._rivers.push(river);
+                    for (let t of river.tiles) {
+                        t.hasRiver = true;
+                    }
                 }
+                this.add(riversGraphics);
+            } catch (e) {
+                console.error(e);
             }
-            this.add(graphics);
 
 
             // TREES /MOUNTAINS !
@@ -181,17 +191,16 @@ module CIV {
 
                 let tiles = this.getEvenlyLocatedTiles(numberOfResources, Constants.MAP.SIZE * 2, t => res.canBeFoundOn.indexOf(t.type) !== -1);
                 for (let t of tiles) {
-                    let img = Game.INSTANCE.add.image(t.worldPosition.x, t.worldPosition.y, res.key);
-                    img.setOrigin(0.5, 1)
-                    t.assets.push(img);
-                    img.scale = ratio;
-                    img.depth = Constants.LAYER.TREES;
+                    t.setTexture(res.key);
+
+                    // Add ressources on this tile
+                    for (let key in res.bonus) {
+                        let value = parseInt(res.bonus[key]);
+                        console.log(key, value);
+                        t.resources[ResourceType[key]] += value;
+                    }
                 }
             }
-
-            // Draw all ressources on a container
-            // this.updateResourceLayer();
-
 
             console.log("MAP -", this.getAllTiles(t => t.isWater).length, "water tiles");
             console.log("MAP -", this.getAllTiles(t => !t.isWater).length, "land tiles");
@@ -202,6 +211,7 @@ module CIV {
          * Draw the texture with all resources from all tiles on it.
          */
         drawResourceLayer() {
+
             let isVisible = false;
             if (this.resourceLayer) {
                 isVisible = this.resourceLayer.visible;
@@ -255,7 +265,7 @@ module CIV {
             if (!t.isEmpty) {
                 return false;
             }
-            let ring = this.grid.ring(t.rq.q, t.rq.r, 2);
+            let ring = this._grid.ring(t.rq.q, t.rq.r, 2);
             let tilesInRing = this.getTilesByAxialCoords(ring);
             // The starting location should not be on the border of the map
             if (tilesInRing.length <= 7) {
@@ -291,8 +301,8 @@ module CIV {
             let distance = 1
             while (true) {
                 let waterTiles = this.getTilesByAxialCoords(
-                    this.grid.ring(tile.rq.q, tile.rq.r, distance)
-                ).filter(t => t.isWater)
+                    this._grid.ring(tile.rq.q, tile.rq.r, distance)
+                ).filter(t => t.type === TileType.Water)
                 if (waterTiles.length === 0) {
                     distance++;
                     continue;
@@ -309,7 +319,7 @@ module CIV {
             let range: Tile[] = [];
 
             for (let i = config.range; i >= 1; i--) {
-                range.push(...this.getTilesByAxialCoords(this.grid.ring(config.from.rq.q, config.from.rq.r, i)))
+                range.push(...this.getTilesByAxialCoords(this._grid.ring(config.from.rq.q, config.from.rq.r, i)))
             }
 
             for (let n of range) {
@@ -343,7 +353,24 @@ module CIV {
          * Return the list of neighbours of the given tile
          */
         getNeighbours(t: Tile): Array<Tile> {
-            return this.getTilesByAxialCoords(this.grid.neighbors(t.rq.q, t.rq.r));
+            return this.getTilesByAxialCoords(this._grid.neighbors(t.rq.q, t.rq.r));
+        }
+
+        /**
+         * Returns all tiles (excluding the given tile) in a distance of 'nb' around the given tile.
+         */
+        getRing(t: Tile, nb: number = 1): Array<Tile> {
+            let r = nb;
+            let ring = [];
+            while (r > 0) {
+                ring.push(...this.getTilesByAxialCoords(
+                    this._grid.ring(
+                        t.rq.q, t.rq.r, r
+                    )
+                ))
+                r--;
+            }
+            return ring;
         }
 
 
@@ -456,7 +483,7 @@ module CIV {
 
             let neighboursSet = {};
 
-            let neighbours = this.getTilesByAxialCoords(this.grid.neighbors(tile.rq.q, tile.rq.r));
+            let neighbours = this.getTilesByAxialCoords(this._grid.neighbors(tile.rq.q, tile.rq.r));
             for (let n of neighbours) {
                 if (n.isWater) {
                     continue;
@@ -542,6 +569,15 @@ module CIV {
             }
             console.warn("Impossible to find ", nb, "evenly placed tiles at distance", distanceMax)
             return res;
+        }
+
+        destroy() {
+            this.doForAllTiles(t => t.destroy());
+            if (this.resourceLayer) {
+                this.resourceLayer.destroy();
+            }
+
+            super.destroy();
         }
     }
 }

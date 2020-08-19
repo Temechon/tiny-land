@@ -113,5 +113,11 @@ module CIV {
             // NO path exist to the fog of war
             return null;
         }
+
+        destroy() {
+            if (this._container) {
+                this._container.destroy();
+            }
+        }
     }
 }

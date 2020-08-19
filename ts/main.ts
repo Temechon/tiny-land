@@ -33,7 +33,8 @@ var app = {
             scene: [
                 CIV.Boot,
                 CIV.Game,
-                CIV.GameUI
+                CIV.GameUI,
+                CIV.Loading
             ]
         };
 

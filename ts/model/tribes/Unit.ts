@@ -25,6 +25,9 @@ module CIV {
         private _tribe: Tribe;
         state: UnitState = UnitState.IDLE;
 
+        /** Create a city for a settler, heal, improve unit... */
+        private _specialAction: Phaser.GameObjects.Image;
+
         constructor(config: {
             scene: Phaser.Scene,
             x: number,
@@ -44,7 +47,6 @@ module CIV {
             this.depth = Constants.LAYER.UNITS;
 
             let image = Game.INSTANCE.make.image({ x: config.x, y: config.y, key: config.infos.key, add: false });
-            image.setTint(this._tribe.color);
             this.add(image);
             this._image = image;
 
@@ -75,6 +77,9 @@ module CIV {
             if (this.state === UnitState.ACTIVATED) {
                 this.state = UnitState.IDLE
             }
+            if (this._specialAction) {
+                this._specialAction.destroy();
+            }
         }
 
         activate() {
@@ -102,7 +107,25 @@ module CIV {
                     h.alpha = 0.5
                     this.add(h);
                     // Game.INSTANCE.add.existing(h);
-                    h.on('pointerdown', this.move.bind(this, obj));
+                    h.on('pointerup', this.move.bind(this, obj));
+                }
+
+                if (this.infos.name === Constants.SETTLER_NAME) {
+                    console.log("name settler!")
+                    if (City.canCreateHere(this.currentTile, this._tribe)) {
+
+                        let img = this.scene.add.image(this.currentTile.worldPosition.x, this.currentTile.worldPosition.y, 'settler_create');
+                        this.add(img);
+                        img.depth = 100;
+                        img.setOrigin(0.5, 1.5);
+                        img.setInteractive();
+                        img.on('pointerdown', () => {
+                            // TODO if a city can be created here
+                            this.destroy();
+                            this._tribe.setCityOn(this.currentTile);
+                        })
+                        this._specialAction = img;
+                    }
                 }
             }
         }
@@ -157,9 +180,16 @@ module CIV {
             let res = [];
 
             for (let i = vision; i >= 1; i--) {
-                res.push(...this.map.getTilesByAxialCoords(this.map.grid.ring(tile.rq.q, tile.rq.r, i)))
+                res.push(...this.map.getRing(tile, i))
             }
             return res;
+        }
+
+        destroy() {
+            for (let g of this._moveRangeGraphics) {
+                g.destroy();
+            }
+            super.destroy();
         }
     }
 }

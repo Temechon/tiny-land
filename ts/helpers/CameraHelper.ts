@@ -94,9 +94,9 @@ module CIV {
 
             this.scene.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
                 // text2.text = "Moving " + this.state
+                // console.log("moving")
 
                 if (pointer.isDown) {
-                    this.scene.events.emit("circularmenuoff")
                     if (!this.movedState[pointer.id]) {
                         this.movedState[pointer.id] = (pointer.x !== pointer.downX) || (pointer.y !== pointer.downY);
                     }
@@ -105,6 +105,7 @@ module CIV {
                         switch (this.tracerState) {
                             case CameraHelper.TOUCH1:
                                 // this.onDrag1();
+                                // this.scene.events.emit("circularmenuoff")
                                 let drag1Vector = this.drag1Vector;
                                 camera.scrollX -= drag1Vector.x / camera.zoom;
                                 camera.scrollY -= drag1Vector.y / camera.zoom;

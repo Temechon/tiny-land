@@ -8,28 +8,24 @@ abstract class Constants {
         NUMBERS: "KeepCalm"
     };
 
+    /** The name of a settler in units.json */
+    public static SETTLER_NAME = "Settler";
+
     public static MAP = {
         /** The map size */
-        SIZE: 10, // 15 will be the final size
+        SIZE: 15, // 15 will be the final size
 
         /** Noise parameters for water */
+        DEEPWATER: 65,
+
         WATER: {
             NOISE: {
                 min: 0,
                 max: 200,
                 octaves: 1,
-                frequency: 0.08
+                frequency: 0.06
             },
-            THRESHOLD: 95 // Less is les water
-        },
-        MOUNTAIN: {
-            NOISE: {
-                min: 0,
-                max: 200,
-                octaves: 3,
-                frequency: 0.35
-            },
-            THRESHOLD: 125
+            THRESHOLD: 85 // Less is les water
         },
         /** Noise parameters for forest */
         FOREST: {
@@ -40,7 +36,16 @@ abstract class Constants {
                 frequency: 0.1
             },
             THRESHOLD: 75 // [min; max] : Less is more trees
-        }
+        },
+        MOUNTAIN: {
+            NOISE: {
+                min: 0,
+                max: 200,
+                octaves: 3,
+                frequency: 0.35
+            },
+            THRESHOLD: 125
+        },
     };
     public static LAYER = {
         FOG_OF_WAR: 20,
