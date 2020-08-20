@@ -59,4 +59,10 @@ abstract class Constants {
             ROOT: 1
         }
     }
+
+    static EVENTS = {
+        CIRCULAR_MENU_ON: "circularmenuon",
+        CIRCULAR_MENU_OFF: "circularmenuoff",
+        UI_UPDATE: "uiupdate"
+    }
 }

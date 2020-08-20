@@ -10,6 +10,9 @@ module CIV {
         public cities: City[] = [];
         public units: Unit[] = [];
 
+        /** THe first city created for this tribe */
+        capital: City;
+
         /** The color of the influence radius */
         public color: number;
 
@@ -33,7 +36,7 @@ module CIV {
             this.color = parseInt(chance.color({ format: '0x' }));
 
             // Ressources
-            this.productionManager = new ProductionManager();
+            this.productionManager = new ProductionManager(this);
 
         }
 
@@ -55,15 +58,22 @@ module CIV {
             this.productionManager.addCity(city);
             this.productionManager.collectCity(city);
 
+            // Make this city the capital if first one
+            if (this.cities.length === 0) {
+                this.capital = city;
+            }
+
             this.cities.push(city);
             this.add(city);
 
             // Remove all tiles of this city from the fog of war
             this.removeFogOfWar(city.getInfluenceZone());
 
-            // this.bringToTop(this.fogOfWar);
             this.bringToTop(city);
             this.updateFrontiers();
+
+            this.scene.events.emit(Constants.EVENTS.UI_UPDATE);
+
             return city;
         }
 
@@ -170,7 +180,7 @@ module CIV {
                     }
                 }
             }
-            console.log("after removing duplicates", points.length);
+            // console.log("after removing duplicates", points.length);
 
             // Sort vertices
             let paths = [];
@@ -188,13 +198,13 @@ module CIV {
                     let distToLast = Phaser.Math.Distance.BetweenPointsSquared(r, last);
 
                     if (distToLast < hwsquared) {
-                        console.log("found 1 pick!")
+                        // console.log("found 1 pick!")
                         picks.push({ vertex: r, index: j });
                     }
                 }
-                console.log("All points browsed, nb of picks", picks.length)
+                // console.log("All points browsed, nb of picks", picks.length)
                 if (picks.length === 0) {
-                    console.warn("NO PICKK")
+                    // console.warn("NO PICKK")
 
                     // Create a new path
                     paths.push(sortedVertices);
@@ -234,8 +244,6 @@ module CIV {
                 }
             }
             paths.push(sortedVertices);
-            console.log(paths);
-
 
             // Draw it
             let i = 0;
@@ -243,13 +251,7 @@ module CIV {
             for (let frontier of paths) {
 
                 frontier.push(frontier[0]);
-                // frontier.push(frontier[1]);
                 g.strokePoints(frontier);
-                // for (let p of frontier) {
-                //     setTimeout(() => {
-                //         g.fillCircle(p.x, p.y, 10);
-                //     }, 200 * i++)
-                // }
             }
 
         }
@@ -316,83 +318,6 @@ module CIV {
             }
             this.fogOfWar.destroy();
             super.destroy();
-        }
-
-    }
-
-    class ProductionManager {
-
-        /** The total pool of ressource for this tribe */
-        private ressources: Array<number> = [];
-
-        _cities: Array<City> = [];
-
-        constructor() {
-            this.ressources[ResourceType.Food] = 0;
-            this.ressources[ResourceType.Gold] = 0;
-            this.ressources[ResourceType.Science] = 0;
-        }
-
-        get food(): number {
-            return this.ressources[ResourceType.Food];
-        }
-
-        get gold(): number {
-            return this.ressources[ResourceType.Gold];
-        }
-
-        get science(): number {
-            return this.ressources[ResourceType.Science];
-        }
-
-        get foodByTurn(): number {
-            let res = 0;
-            for (let c of this._cities) {
-                res += c.getProductionOf(ResourceType.Food)
-            }
-            return res;
-        }
-
-        get goldByTurn(): number {
-            let res = 0;
-            for (let c of this._cities) {
-                res += c.getProductionOf(ResourceType.Gold)
-            }
-            return res;
-        }
-
-        get scienceByTurn(): number {
-            let res = 0;
-            for (let c of this._cities) {
-                res += c.getProductionOf(ResourceType.Science)
-            }
-            return res;
-        }
-
-        addCity(city: City) {
-            this._cities.push(city);
-        }
-
-        /**
-         * Add each city production to the global pool
-         */
-        collect() {
-            this.ressources[ResourceType.Food] += this.foodByTurn;
-            this.ressources[ResourceType.Gold] += this.goldByTurn;
-            this.ressources[ResourceType.Science] += this.scienceByTurn;
-        }
-
-        /**
-         * Collect all ressources from the given city
-         */
-        collectCity(city: City) {
-            this.ressources[ResourceType.Food] += city.getProductionOf(ResourceType.Food);
-            this.ressources[ResourceType.Gold] += city.getProductionOf(ResourceType.Gold);
-            this.ressources[ResourceType.Science] += city.getProductionOf(ResourceType.Science);
-        }
-
-        consume(type: ResourceType, nb: number) {
-            this.ressources[type] -= nb;
         }
 
     }

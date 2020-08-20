@@ -80,7 +80,7 @@ module CIV {
                 this.scene.add.existing(unit);
 
                 this._tribe.units.push(unit);
-                this.scene.events.emit("updateui");
+                this.scene.events.emit(Constants.EVENTS.UI_UPDATE);
             }
         }
 
@@ -175,7 +175,7 @@ module CIV {
             }
             let listOfUnits = this.getListOfPossibleProduction();
 
-            this.scene.events.emit("circularmenuon", {
+            this.scene.events.emit(Constants.EVENTS.CIRCULAR_MENU_ON, {
                 city: this,
                 position: this.worldposition,
                 constructions: listOfUnits
@@ -192,7 +192,7 @@ module CIV {
         }
 
         deactivate() {
-            this.scene.events.emit("circularmenuoff");
+            this.scene.events.emit(Constants.EVENTS.CIRCULAR_MENU_OFF);
             console.log("CITY DEACTIVATED");
         }
     }

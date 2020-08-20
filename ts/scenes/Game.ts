@@ -60,6 +60,7 @@ module CIV {
                     c.influenceRadius++;
                 }
                 this.player.updateFrontiers();
+                this.events.emit(Constants.EVENTS.UI_UPDATE)
             });
             this.input.keyboard.on('keyup-' + 'SPACE', () => {
                 this.nextTurn()
@@ -128,7 +129,7 @@ module CIV {
                 // TODO Finish here
             }
 
-            this.events.emit("updateui")
+            this.events.emit(Constants.EVENTS.UI_UPDATE)
         }
     }
 }

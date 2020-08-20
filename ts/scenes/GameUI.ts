@@ -20,7 +20,7 @@ module CIV {
             //  Grab a reference to the Game Scene
             this._gameScene = this.scene.get('game') as Game;
 
-            this._gameScene.events.on('updateui', this.updateUI.bind(this))
+            this._gameScene.events.on(Constants.EVENTS.UI_UPDATE, this.updateUI.bind(this))
 
             let hud = this.add.container();
 
@@ -79,7 +79,7 @@ module CIV {
             hud.add(this.scienceByTurn);
 
             let menu = null;
-            this._gameScene.events.on('circularmenuon', (config: {
+            this._gameScene.events.on(Constants.EVENTS.CIRCULAR_MENU_ON, (config: {
                 position: Phaser.Types.Math.Vector2Like,
                 constructions: Array<ConstructionOrder>,
                 city: City
@@ -117,7 +117,7 @@ module CIV {
                 });
             })
 
-            this._gameScene.events.on('circularmenuoff', () => {
+            this._gameScene.events.on(Constants.EVENTS.CIRCULAR_MENU_OFF, () => {
                 if (menu) {
                     menu.destroy();
                     menu = null;
