@@ -22,6 +22,9 @@ module CIV {
         /** The global pool of ressource for this tribe */
         productionManager: ProductionManager;
 
+        /** The tetxure used to display the influence */
+        private _influenceTexture: Phaser.GameObjects.Graphics;
+
         constructor(public name: string) {
             super(Game.INSTANCE);
             Game.INSTANCE.add.existing(this);
@@ -56,11 +59,166 @@ module CIV {
             this.add(city);
 
             // Remove all tiles of this city from the fog of war
-            this.removeFogOfWar(city.getVision());
+            this.removeFogOfWar(city.getInfluenceZone());
 
             // this.bringToTop(this.fogOfWar);
             this.bringToTop(city);
+            this.updateFrontiers();
             return city;
+        }
+
+        updateFrontiers() {
+
+            if (this._influenceTexture) {
+                this._influenceTexture.destroy();
+                this.remove(this._influenceTexture);
+            }
+
+            // Group cities by axial distance to the first one
+            let groups = [];
+            let remainingCities = this.cities.slice();
+
+            let g = Game.INSTANCE.make.graphics({ x: 0, y: 0, add: false });
+            g.depth = 100;
+
+
+            // A city is added in a group if its distance between at least one city in the group is smaller than c1 + c2 + 1
+            let belongToGroup = (c: City, group: City[]): boolean => {
+                for (let m of group) {
+                    let dist = HexGrid.axialDistance(c.tile.rq.q, c.tile.rq.r, m.tile.rq.q, m.tile.rq.r);
+                    let radius1 = c.influenceRadius;
+                    let radius2 = m.influenceRadius;
+                    if (dist <= radius1 + radius2 + 1) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            let group = [this.cities[0]];
+            remainingCities.shift();
+
+            while (remainingCities.length > 0) {
+
+                let toAdd = remainingCities.filter(c => belongToGroup(c, group));
+                remainingCities = remainingCities.filter(c => !belongToGroup(c, group));
+
+                if (toAdd.length > 0) {
+                    for (let c of toAdd) {
+                        group.push(c);
+                    }
+                } else {
+                    groups.push(group);
+                    group = [remainingCities[0]];
+                    remainingCities.shift();
+                }
+            }
+            groups.push(group);
+            console.log("groups of cities", groups);
+
+            for (let gg of groups) {
+                this._updateFrontiers(gg, g);
+            }
+            this._influenceTexture = g;
+            this.add(this._influenceTexture);
+
+
+        }
+
+        private _updateFrontiers(cities: City[], g: Phaser.GameObjects.Graphics) {
+            let hw = 0;
+
+            let ring = [];
+            for (let city of cities) {
+                city.updateInfluenceTiles();
+                ring.push(...city.getInfluenceZone());
+            }
+
+            hw = (ring[0] as Tile).displayHeight / 2;
+            hw = hw * hw + 100;
+
+            // Get all vertices
+            let allVertices: Vertex[] = [];
+            for (let t of ring) {
+                allVertices.push(...t.vertices);
+            }
+
+            // Kepp all vertices shared by two tiles or less
+            allVertices = allVertices.filter(v => Tile.getTilesSharingVertex(v, ring).length <= 2)
+
+            let points = [];
+
+            for (let v of allVertices) {
+                points.push({
+                    x: v.coords.x + Game.INSTANCE.map.x,
+                    y: v.coords.y + Game.INSTANCE.map.y
+                });
+            }
+            // Remove duplicates points
+            for (let i = 0; i < points.length; i++) {
+                let p = points[i];
+
+                for (let pp of points) {
+                    let dist = Phaser.Math.Distance.BetweenPointsSquared(p, pp)
+                    if (dist < 100 * ratio && dist > 0) {
+                        points.splice(i, 1);
+                        i--;
+                        break;
+                    }
+                }
+            }
+
+            // Sort vertices
+            let paths = [];
+            let sortedVertices = [points[0]];
+            points.shift();
+
+            for (let i = 0; i < points.length; i++) {
+                let last = sortedVertices[sortedVertices.length - 1];
+
+                let vertexIndex;
+                let nearest;
+                let minDist = Number.MAX_VALUE
+                for (let j = 0; j < points.length; j++) {
+                    let r = points[j];
+
+                    let distToLast = Phaser.Math.Distance.BetweenPointsSquared(r, last);
+                    // console.log("Distance", minDist)
+                    if (distToLast > ratio && distToLast < minDist) {
+                        nearest = r;
+                        minDist = distToLast
+                        vertexIndex = j;
+                    }
+                }
+                // console.log("Distance min", minDist)
+                if (minDist > hw) {
+                    // Create a new path
+                    paths.push(sortedVertices);
+                    sortedVertices = [];
+                }
+                sortedVertices.push(nearest)
+                points.splice(vertexIndex, 1);
+                i--;
+            }
+            paths.push(sortedVertices);
+            console.log(paths);
+
+
+            // Draw it
+            let i = 0;
+            g.lineStyle(20 * ratio, this.color);
+            for (let frontier of paths) {
+
+                frontier.push(frontier[0]);
+                frontier.push(frontier[1]);
+                g.strokePoints(frontier);
+                // for (let p of frontier) {
+                //     setTimeout(() => {
+                //         g.fillCircle(p.x, p.y, 10);
+                //     }, 200 * i++)
+                // }
+            }
+
         }
 
         /**
@@ -114,19 +272,7 @@ module CIV {
             }
         }
 
-        /**
-         * Th vision of the tribe is the union of all vision for all cities and units
-         * and all hexes browsed by all units
-         */
-        // getVision(): Array<Tile> {
-        //     let res = [];
 
-        //     for (let c of this.cities) {
-        //         res.push(...c.getVision());
-        //     }
-
-        //     return res;
-        // }
         destroy() {
             for (let c of this.cities) {
                 c.destroy();

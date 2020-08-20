@@ -7,7 +7,7 @@ module CIV {
 
     export class City extends Phaser.GameObjects.Container implements IClickable {
 
-        private _tile: Tile;
+        tile: Tile;
         public worldmap: WorldMap;
 
         /** The tribe this city belongs to */
@@ -15,8 +15,6 @@ module CIV {
 
         /** The number of hexagon around this city that can be used by this city */
         public influenceRadius: number = 1;
-        /** The tetxure used to display the influence */
-        private _influenceTexture: Phaser.GameObjects.Graphics;
         /** All tiles in the influence area of this city */
         private _influenceTiles: Tile[] = [];
 
@@ -26,13 +24,13 @@ module CIV {
             tribe: Tribe
         }) {
             super(Game.INSTANCE);
-            this._tile = config.tile;
+            this.tile = config.tile;
             this.worldmap = config.worldmap;
             this._tribe = config.tribe;
 
             let cityImage = Game.INSTANCE.make.image({
-                x: this._tile.worldPosition.x,
-                y: this._tile.worldPosition.y,
+                x: this.tile.worldPosition.x,
+                y: this.tile.worldPosition.y,
                 key: 'city',
                 add: false
             });
@@ -41,24 +39,24 @@ module CIV {
             this.add(cityImage)
 
             // Remove assets from the tile
-            for (let ass of this._tile.assets) {
+            for (let ass of this.tile.assets) {
                 ass.destroy();
             }
 
             // Draw its influence area
-            this.updateInfluenceRadius();
-            this._tile.addClickable(this);
+            this.updateInfluenceTiles();
+            this.tile.addClickable(this);
         }
 
         get worldposition(): Phaser.Types.Math.Vector2Like {
-            return { x: this._tile.worldPosition.x, y: this._tile.worldPosition.y }
+            return { x: this.tile.worldPosition.x, y: this.tile.worldPosition.y }
         }
 
         /**
          * Returns true if this city already has a unit
          */
         get hasUnit(): boolean {
-            return this._tile.hasUnit;
+            return this.tile.hasUnit;
         }
 
         /**
@@ -70,11 +68,11 @@ module CIV {
 
                 let unit = new Unit({
                     scene: Game.INSTANCE,
-                    x: this._tile.worldPosition.x,
-                    y: this._tile.worldPosition.y,
+                    x: this.tile.worldPosition.x,
+                    y: this.tile.worldPosition.y,
                     infos: info,
                     map: this.worldmap,
-                    tile: this._tile,
+                    tile: this.tile,
                     tribe: this._tribe
                 });
                 this._tribe.productionManager.consume(ResourceType.Gold, info.cost);
@@ -123,12 +121,8 @@ module CIV {
             return res;
         }
 
-        updateInfluenceRadius() {
+        updateInfluenceTiles() {
 
-            if (this._influenceTexture) {
-                this._influenceTexture.destroy();
-                this.remove(this._influenceTexture);
-            }
             // Clear the array of influence tiles
             for (let t of this._influenceTiles) {
                 t.belongsTo = null;
@@ -136,87 +130,18 @@ module CIV {
             this._influenceTiles = []
 
             let r = this.influenceRadius;
-            let ring = this.worldmap.getRing(this._tile, r);
-            ring.push(this._tile)
+            let ring = this.worldmap.getRing(this.tile, r);
 
             ring = ring.filter(t => t.belongsTo === null);
 
             for (let r of ring) {
                 this._influenceTiles.push(r);
             }
-            this._influenceTiles.push(this._tile);
+            this._influenceTiles.push(this.tile);
 
             for (let t of this._influenceTiles) {
                 t.belongsTo = this;
             }
-
-            // Get all vertices
-            let allVertices: Vertex[] = [];
-            for (let t of ring) {
-                allVertices.push(...t.vertices);
-            }
-
-            // Kepp all vertices shared by two tiles or less
-            allVertices = allVertices.filter(v => Tile.getTilesSharingVertex(v, ring).length <= 2)
-
-            let points = [];
-
-            for (let v of allVertices) {
-                points.push({
-                    x: v.coords.x + this._tile.parentContainer.x,
-                    y: v.coords.y + this._tile.parentContainer.y
-                });
-            }
-            // Remove duplicates points
-            for (let i = 0; i < points.length; i++) {
-                let p = points[i];
-
-                for (let pp of points) {
-                    let dist = Phaser.Math.Distance.BetweenPointsSquared(p, pp)
-                    if (dist < 100 * ratio && dist > 0) {
-                        points.splice(i, 1);
-                        i--;
-                        break;
-                    }
-                }
-            }
-
-            // Sort vertices
-            let sortedVertices = [points[0]];
-            points.shift();
-
-            for (let i = 0; i < points.length; i++) {
-                let last = sortedVertices[sortedVertices.length - 1];
-
-                let vertexIndex;
-                let nearest;
-                let minDist = Number.MAX_VALUE
-                for (let j = 0; j < points.length; j++) {
-                    let r = points[j];
-
-                    let distToLast = Phaser.Math.Distance.BetweenPointsSquared(r, last);
-                    if (distToLast > 0 && distToLast < minDist) {
-                        nearest = r;
-                        minDist = distToLast
-                        vertexIndex = j;
-                    }
-                }
-                sortedVertices.push(nearest)
-                points.splice(vertexIndex, 1);
-                i--;
-            }
-            // Draw it
-            let g = Game.INSTANCE.make.graphics({ x: 0, y: 0, add: false });
-            g.depth = 100;
-
-            let path = new Phaser.Curves.Path(sortedVertices[0].x, sortedVertices[0].y);
-            sortedVertices.push(sortedVertices[0])
-            sortedVertices.push(sortedVertices[1])
-            path.splineTo(sortedVertices);
-            g.lineStyle(20 * ratio, this._tribe.color);
-            path.draw(g, sortedVertices.length * 100);
-            this._influenceTexture = g;
-            this.add(this._influenceTexture);
         }
 
         /**
@@ -262,7 +187,7 @@ module CIV {
         * The vision of this city is the set of hex in this influence zone
         * TODO redo this with a parameter "bonus" when we create a new city
         */
-        getVision(): Array<Tile> {
+        getInfluenceZone(): Array<Tile> {
             return this._influenceTiles;
         }
 
@@ -270,11 +195,5 @@ module CIV {
             this.scene.events.emit("circularmenuoff");
             console.log("CITY DEACTIVATED");
         }
-
-        destroy() {
-            this._influenceTexture.destroy();
-            super.destroy();
-        }
-
     }
 }

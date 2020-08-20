@@ -55,8 +55,15 @@ module CIV {
                 this.cameras.main.zoom -= 0.25
             });
             this.input.keyboard.on('keyup-' + 'C', () => {
-                this.resetMap();
+                // this.resetMap();
+                for (let c of this.player.cities) {
+                    c.influenceRadius++;
+                }
+                this.player.updateFrontiers();
             });
+            this.input.keyboard.on('keyup-' + 'SPACE', () => {
+                this.nextTurn()
+            })
 
             // AI
             let nbPlayer = 2;
