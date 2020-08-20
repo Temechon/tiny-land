@@ -318,9 +318,7 @@ module CIV {
             let res: Tile[] = [];
             let range: Tile[] = [];
 
-            for (let i = config.range; i >= 1; i--) {
-                range.push(...this.getTilesByAxialCoords(this._grid.ring(config.from.rq.q, config.from.rq.r, i)))
-            }
+            range = this.getRing(config.from, config.range);
 
             for (let n of range) {
                 // Check if the path between the 'from' tile and this neighbours is <= to the range number
@@ -331,10 +329,9 @@ module CIV {
                     continue;
                 }
 
-                // let path = this._landgraph.shortestPath(config.from.name, n.name);
-                let path = HexGrid.axialDistance(config.from.rq.q, config.from.rq.r, n.rq.q, n.rq.r)
-                if (path > config.range + 1) {
-                    continue;
+                let path = this._landgraph.shortestPath(config.from.name, n.name);
+                if (path.length < 1 || path.length >= config.range + 1) {
+                    continue
                 }
 
                 res.push(n);

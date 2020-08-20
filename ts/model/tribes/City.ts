@@ -64,7 +64,7 @@ module CIV {
          * TODO Remove resources from the tribe to produce this unit
          */
         public produceUnit(info: UnitInfo) {
-            if (this._tribe.productionManager.gold > info.cost) {
+            if (this._tribe.productionManager.gold >= info.cost) {
 
                 let unit = new Unit({
                     scene: Game.INSTANCE,

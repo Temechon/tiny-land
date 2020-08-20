@@ -2,7 +2,7 @@
     {
         "name": "Warrior",
         "key": "warrior",
-        "range": 1,
+        "range": 3,
         "strength": 3,
         "cost": 5,
         "vision": 3

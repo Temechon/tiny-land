@@ -42,9 +42,9 @@ abstract class Constants {
                 min: 0,
                 max: 200,
                 octaves: 3,
-                frequency: 0.35
+                frequency: 0.4
             },
-            THRESHOLD: 125
+            THRESHOLD: 130
         },
     };
     public static LAYER = {
