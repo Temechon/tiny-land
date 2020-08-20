@@ -110,6 +110,7 @@ module CIV {
                     h.on('pointerup', this.move.bind(this, obj));
                 }
 
+                // Special case for colons
                 if (this.infos.name === Constants.SETTLER_NAME) {
                     console.log("name settler!")
                     if (City.canCreateHere(this.currentTile, this._tribe)) {
@@ -117,10 +118,11 @@ module CIV {
                         let img = this.scene.add.image(this.currentTile.worldPosition.x, this.currentTile.worldPosition.y, 'settler_create');
                         this.add(img);
                         img.depth = 100;
+                        img.scale = ratio;
                         img.setOrigin(0.5, 1.5);
                         img.setInteractive();
                         img.on('pointerdown', () => {
-                            // TODO if a city can be created here
+                            this.currentTile.removeClickable(this);
                             this.destroy();
                             this._tribe.setCityOn(this.currentTile);
                         })

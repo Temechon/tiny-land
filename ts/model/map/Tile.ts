@@ -111,8 +111,14 @@ module CIV {
                     res.push(t);
                 }
             }
-
             return res;
+        }
+        /**
+         * Returns all tiles from the given array that share the given vertex
+         */
+        static getTilesSharingVertexAsPoint(vex: Phaser.Types.Math.Vector2Like, tiles: Tile[]): Tile[] {
+
+            return Tile.getTilesSharingVertex({ coords: vex, neighbours: [] }, tiles)
         }
 
         /**

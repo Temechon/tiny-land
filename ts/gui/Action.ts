@@ -33,6 +33,8 @@ module CIV {
                         style: Toast.STYLE.WARNING
                     })
                 }
+            } else {
+                this._icon.setTint(0xffffff);
             }
 
             let style = {

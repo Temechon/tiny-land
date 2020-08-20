@@ -74,7 +74,9 @@ module CIV {
                 this.remove(this._influenceTexture);
             }
 
-            // Group cities by axial distance to the first one
+            this.cities.forEach(c => c.updateInfluenceTiles());
+
+            // Group cities by axial distance, in order to determine the numebr of frontiers to draw
             let groups = [];
             let remainingCities = this.cities.slice();
 
@@ -130,12 +132,11 @@ module CIV {
 
             let ring = [];
             for (let city of cities) {
-                city.updateInfluenceTiles();
                 ring.push(...city.getInfluenceZone());
             }
 
             hw = (ring[0] as Tile).displayHeight / 2;
-            hw = hw * hw + 100;
+            let hwsquared = hw * hw + 100;
 
             // Get all vertices
             let allVertices: Vertex[] = [];
@@ -155,6 +156,8 @@ module CIV {
                 });
             }
             // Remove duplicates points
+            // console.log("Before removing duplicates", points.length);
+
             for (let i = 0; i < points.length; i++) {
                 let p = points[i];
 
@@ -167,38 +170,68 @@ module CIV {
                     }
                 }
             }
+            console.log("after removing duplicates", points.length);
 
             // Sort vertices
             let paths = [];
-            let sortedVertices = [points[0]];
-            points.shift();
+            let sortedVertices = [chance.pickone(points)];
+            points.splice(points.indexOf(sortedVertices[0]), 1);
 
             for (let i = 0; i < points.length; i++) {
                 let last = sortedVertices[sortedVertices.length - 1];
 
-                let vertexIndex;
-                let nearest;
-                let minDist = Number.MAX_VALUE
+                let picks: Array<{ vertex: any, index: number }> = [];
+
                 for (let j = 0; j < points.length; j++) {
                     let r = points[j];
 
                     let distToLast = Phaser.Math.Distance.BetweenPointsSquared(r, last);
-                    // console.log("Distance", minDist)
-                    if (distToLast > ratio && distToLast < minDist) {
-                        nearest = r;
-                        minDist = distToLast
-                        vertexIndex = j;
+
+                    if (distToLast < hwsquared) {
+                        console.log("found 1 pick!")
+                        picks.push({ vertex: r, index: j });
                     }
                 }
-                // console.log("Distance min", minDist)
-                if (minDist > hw) {
+                console.log("All points browsed, nb of picks", picks.length)
+                if (picks.length === 0) {
+                    console.warn("NO PICKK")
+
                     // Create a new path
                     paths.push(sortedVertices);
                     sortedVertices = [];
+                    sortedVertices.push(points.pop())
+                    i = -1;
+                    continue;
+                    // break;
+
                 }
-                sortedVertices.push(nearest)
-                points.splice(vertexIndex, 1);
-                i--;
+                if (picks.length === 1) {
+                    let selectedPick = picks[0];
+                    sortedVertices.push(selectedPick.vertex)
+                    points.splice(selectedPick.index, 1);
+                    i--;
+                    continue;
+                }
+                if (picks.length > 1) {
+                    // get tiles shared with this vertices
+                    let localLast = { x: last.x - Game.INSTANCE.map.x, y: last.y - Game.INSTANCE.map.y }
+                    let lastTiles = Tile.getTilesSharingVertexAsPoint(localLast, ring).map(x => x.name);
+
+                    let minInCommon = Number.MAX_VALUE;
+                    let selectedPick = null;
+                    for (let pick of picks) {
+                        let localp = { x: pick.vertex.x - Game.INSTANCE.map.x, y: pick.vertex.y - Game.INSTANCE.map.y }
+                        let pickTiles = Tile.getTilesSharingVertexAsPoint(localp, ring).map(x => x.name);
+                        let nbInCommonWithLast = pickTiles.map(n => lastTiles.indexOf(n)).filter(index => index !== -1).length;
+                        if (nbInCommonWithLast < minInCommon) {
+                            selectedPick = pick;
+                            minInCommon = nbInCommonWithLast;
+                        }
+                    }
+                    sortedVertices.push(selectedPick.vertex)
+                    points.splice(selectedPick.index, 1);
+                    i--;
+                }
             }
             paths.push(sortedVertices);
             console.log(paths);
@@ -206,11 +239,11 @@ module CIV {
 
             // Draw it
             let i = 0;
-            g.lineStyle(20 * ratio, this.color);
+            g.lineStyle(20 * ratio, 0xff0000);
             for (let frontier of paths) {
 
                 frontier.push(frontier[0]);
-                frontier.push(frontier[1]);
+                // frontier.push(frontier[1]);
                 g.strokePoints(frontier);
                 // for (let p of frontier) {
                 //     setTimeout(() => {

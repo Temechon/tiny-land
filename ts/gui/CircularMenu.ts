@@ -84,7 +84,6 @@ module CIV {
             let step = Phaser.Math.PI2 / this.actions.length;
             let r = this.size - this.size / 4;
 
-            console.log("step", step)
             this.actions.forEach((act: Action, i: number) => {
 
                 let x = Math.cos(step * i) * r

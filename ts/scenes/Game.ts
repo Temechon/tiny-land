@@ -66,14 +66,14 @@ module CIV {
             })
 
             // AI
-            let nbPlayer = 2;
-            let tiles = this.map.getEvenlyLocatedTiles(nbPlayer, Constants.MAP.SIZE * 2, this.map.isStartingLocationCorrect.bind(this.map));
+            // let nbPlayer = 2;
+            let tiles = this.map.getEvenlyLocatedTiles(1, Constants.MAP.SIZE * 2, this.map.isStartingLocationCorrect.bind(this.map));
             this.player.setCityOn(tiles[0]);
-            for (let i = 1; i < nbPlayer; i++) {
-                let ai = new AI(chance.name());
-                this.tribes.push(ai);
-                ai.setCityOn(tiles[i]);
-            }
+            // for (let i = 1; i < nbPlayer; i++) {
+            //     let ai = new AI(chance.name());
+            //     this.tribes.push(ai);
+            //     ai.setCityOn(tiles[i]);
+            // }
 
             setTimeout(() => {
                 // this.map.drawResourceLayer();
