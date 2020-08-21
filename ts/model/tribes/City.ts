@@ -32,10 +32,10 @@ module CIV {
                 x: this.tile.worldPosition.x,
                 y: this.tile.worldPosition.y,
                 key: 'city',
+                scale: ratio,
                 add: false
             });
 
-            cityImage.scale = ratio;
             this.add(cityImage)
 
             // Remove assets from the tile
@@ -189,6 +189,15 @@ module CIV {
         */
         getInfluenceZone(): Array<Tile> {
             return this._influenceTiles;
+        }
+
+        /**
+         * Returns a ring of 2 tiles around the city
+         */
+        getVision(): Array<Tile> {
+            let res = this.worldmap.getRing(this.tile, 2);
+            res.push(this.tile);
+            return res;
         }
 
         deactivate() {

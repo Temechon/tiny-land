@@ -46,7 +46,7 @@ module CIV {
             this._tribe = config.tribe;
             this.depth = Constants.LAYER.UNITS;
 
-            let image = Game.INSTANCE.make.image({ x: config.x, y: config.y, key: config.infos.key, add: false });
+            let image = Game.INSTANCE.make.image({ x: config.x, y: config.y, scale: ratio, key: config.infos.key, add: false });
             this.add(image);
             this._image = image;
 
@@ -188,8 +188,10 @@ module CIV {
         }
 
         destroy() {
-            for (let g of this._moveRangeGraphics) {
-                g.destroy();
+            if (this._moveRangeGraphics) {
+                for (let g of this._moveRangeGraphics) {
+                    g.destroy();
+                }
             }
             super.destroy();
         }

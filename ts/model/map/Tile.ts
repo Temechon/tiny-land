@@ -189,8 +189,7 @@ module CIV {
         _drawResource(type: ResourceType, nb: number, p: Phaser.Types.Math.Vector2Like, rootContainer: Phaser.GameObjects.Container) {
             let container = Game.INSTANCE.make.container({ x: 0, y: 0, add: false });
             let keys = ['gold', 'food', 'research'];
-            let s = Game.INSTANCE.make.image({ x: p.x, y: p.y, key: keys[type], add: false });
-            s.scale = ratio;
+            let s = Game.INSTANCE.make.image({ x: p.x, y: p.y, key: keys[type], scale: ratio, add: false });
             container.add(s);
 
 

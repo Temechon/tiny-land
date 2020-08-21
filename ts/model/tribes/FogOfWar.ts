@@ -59,6 +59,8 @@ module CIV {
                     x: c.center.x, y: c.center.y, key: 'hex', add: false, scale: ratio * 1.15
                 })
                 fog.name = c.name;
+                // Set the fog interactive to avoid activation on objects below
+                fog.setInteractive();
                 this._container.add(fog)
             }
         }

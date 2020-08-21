@@ -20,8 +20,7 @@ module CIV {
             super(config.scene, 0, 0);
             this._action = config.action;
 
-            this._icon = this.scene.make.image({ x: 0, y: 0, key: config.key, add: false });
-            this._icon.scale = ratio;
+            this._icon = this.scene.make.image({ x: 0, y: 0, key: config.key, scale: ratio, add: false });
             this.add(this._icon);
 
             if (config.deactivated) {

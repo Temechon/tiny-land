@@ -41,21 +41,21 @@ module CIV {
             let gold = this.make.image({
                 x: 75 * ratio,
                 y: 75 * ratio,
-                key: 'gold'
+                key: 'gold',
+                scale: ratio
             });
-            gold.scale = ratio;
             let food = this.make.image({
                 x: gold.x,
                 y: gold.y + gold.displayHeight,
-                key: 'food'
+                key: 'food',
+                scale: ratio
             });
-            food.scale = ratio;
             let science = this.make.image({
                 x: food.x,
                 y: food.y + food.displayHeight,
-                key: 'research'
+                key: 'research',
+                scale: ratio
             });
-            science.scale = ratio;
 
             hud.add(gold);
             hud.add(food);

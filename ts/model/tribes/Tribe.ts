@@ -5,7 +5,7 @@ module CIV {
      */
     export class Tribe extends Phaser.GameObjects.Container {
 
-        static DEBUG_FOG_OF_WAR_ON = false;
+        static DEBUG_FOG_OF_WAR_ON = true;
 
         public cities: City[] = [];
         public units: Unit[] = [];
@@ -42,7 +42,7 @@ module CIV {
 
         /**
          * Set a city on the given tile, and ressources (1 gold, 2 science) on this tile (just because).
-         * The fog of war is also removed for this city.
+         * The fog of war is also removed for this city and one tile after the city.
          */
         setCityOn(tile: Tile): City {
 
@@ -67,7 +67,7 @@ module CIV {
             this.add(city);
 
             // Remove all tiles of this city from the fog of war
-            this.removeFogOfWar(city.getInfluenceZone());
+            this.removeFogOfWar(city.getVision());
 
             this.bringToTop(city);
             this.updateFrontiers();
