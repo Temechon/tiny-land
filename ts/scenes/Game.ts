@@ -37,22 +37,20 @@ module CIV {
             let ch = new CameraHelper(this);
 
             this.map = new WorldMap(this);
-
             this.map.create();
 
             // Display UI
             this.scene.run('loading');
-            this.scene.run('gameui');
+            this.scene.run('selectmapui');
 
-            // TRIBES
-            this.player = new Player(chance.name());
-            this.tribes.push(this.player);
-
-            this.input.keyboard.on('keydown-' + 'W', () => {
-                this.cameras.main.zoom += 0.25
+            this.input.keyboard.on('keyup-' + 'W', () => {
+                console.log("CAMERA - Zoom:", this.cameras.main.zoom);
+                this.cameras.main.zoom += 0.15
             });
-            this.input.keyboard.on('keydown-' + 'X', () => {
-                this.cameras.main.zoom -= 0.25
+            this.input.keyboard.on('keyup-' + 'X', () => {
+                console.log("CAMERA - Zoom:", this.cameras.main.zoom);
+
+                this.cameras.main.zoom -= 0.15
             });
             this.input.keyboard.on('keyup-' + 'C', () => {
                 // this.resetMap();
@@ -65,16 +63,13 @@ module CIV {
             this.input.keyboard.on('keyup-' + 'SPACE', () => {
                 this.nextTurn()
             })
+            this.tweens.add({
+                targets: this.cameras.main,
+                zoom: 0.5,
+                duration: 1500,
+                ease: Phaser.Math.Easing.Expo.Out
+            })
 
-            // AI
-            // let nbPlayer = 2;
-            let tiles = this.map.getEvenlyLocatedTiles(1, Constants.MAP.SIZE * 2, this.map.isStartingLocationCorrect.bind(this.map));
-            this.player.setCityOn(tiles[0]);
-            // for (let i = 1; i < nbPlayer; i++) {
-            //     let ai = new AI(chance.name());
-            //     this.tribes.push(ai);
-            //     ai.setCityOn(tiles[i]);
-            // }
 
             setTimeout(() => {
                 // this.map.drawResourceLayer();
@@ -90,10 +85,41 @@ module CIV {
             }, 0)
 
 
-            this.cameras.main.centerOn(tiles[0].worldPosition.x, tiles[0].worldPosition.y)
+            this.scene.run('gameui');
+            // TRIBES
+            this.player = new Player(chance.name());
+            this.tribes.push(this.player);
+
+            // AI
+            // let nbPlayer = 2;
+            let tiles = this.map.getEvenlyLocatedTiles(1, Constants.MAP.SIZE * 2, this.map.isStartingLocationCorrect.bind(this.map));
+            this.player.setCityOn(tiles[0]);
+            // for (let i = 1; i < nbPlayer; i++) {
+            //     let ai = new AI(chance.name());
+            //     this.tribes.push(ai);
+            //     ai.setCityOn(tiles[i]);
+            // }
+
+            // Set the camera to an apropriate zoom
+            let x = tiles[0].worldPosition.x;
+            let scrollX = x - this.cameras.main.width * 0.5;
+            let y = tiles[0].worldPosition.y;
+            let scrollY = y - this.cameras.main.height * 0.5;
+
+            setTimeout(() => {
+                this.tweens.add({
+                    targets: this.cameras.main,
+                    zoom: { from: 0, to: 1 },
+                    scrollX: scrollX,
+                    scrollY: scrollY,
+                    duration: 2000,
+                    ease: Phaser.Math.Easing.Circular.Out
+                })
+            }, 150)
 
 
 
+            // this.cameras.main.centerOn(tiles[0].worldPosition.x, tiles[0].worldPosition.y)
 
         }
 
@@ -103,8 +129,20 @@ module CIV {
             }
             this.tribes = [];
             this.map.destroy();
+            Constants.MAP.SIZE = 8//chance.integer({ min: 5, max: 20 });
             this.map = new WorldMap(this);
             this.map.create();
+
+            // Set the camera to an apropriate zoom
+            setTimeout(() => {
+                let zoom = 0.5
+                this.tweens.add({
+                    targets: this.cameras.main,
+                    zoom: zoom,
+                    duration: 1500,
+                    ease: Phaser.Math.Easing.Expo.Out
+                })
+            }, 150)
         }
 
         /**

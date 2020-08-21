@@ -36,7 +36,8 @@ module CIV {
             this.nbTiles = mapCoords.length;
             this.depth = Constants.LAYER.MAP.ROOT;
 
-            console.log("MAP - ", this.nbTiles, "tiles");
+            console.log("MAP - Radius : ", Constants.MAP.SIZE);
+            console.log("MAP - Nb tiles : ", this.nbTiles);
 
             let noiseGen = new FastSimplexNoise(Constants.MAP.WATER.NOISE);
             let noiseForestGen = new FastSimplexNoise(Constants.MAP.FOREST.NOISE);
