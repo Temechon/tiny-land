@@ -10,7 +10,7 @@
     {
         "name": "Settler",
         "key": "settler",
-        "range": 10,
+        "range": 5,
         "strength": 1,
         "cost": 10,
         "vision": 1

@@ -247,11 +247,11 @@ module CIV {
 
             // Draw it
             let i = 0;
-            g.lineStyle(20 * ratio, 0xff0000);
+            g.lineStyle(20 * ratio, this.color);
+            g.fillStyle(this.color);
             for (let frontier of paths) {
-
-                frontier.push(frontier[0]);
-                g.strokePoints(frontier);
+                g.fillCircle(frontier[0].x, frontier[0].y, 10 * ratio);
+                g.strokePoints(frontier, true);
             }
 
         }
