@@ -101,8 +101,6 @@ module CIV {
                         name: con.unit.name,
                         deactivated: deactivated,
                         action: () => {
-                            console.log("coucou");
-
                             config.city.produceUnit(con.unit);
                             menu.destroy();
                             menu = null;

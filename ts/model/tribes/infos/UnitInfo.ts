@@ -8,6 +8,10 @@ module CIV {
         range: number;
         /** The number of tile this unit can see */
         vision: number;
+
+        hpmax: number;
+        hp: number;
+
         /** The cost in gold to build this unit */
         cost: number;
         /** The strength of this unit in combat */

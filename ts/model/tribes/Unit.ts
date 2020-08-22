@@ -40,17 +40,39 @@ module CIV {
             super(config.scene);
 
             this.infos = config.infos;
+            this.infos.hp = this.infos.hpmax
 
             this.currentTile = config.tile;
             this.map = config.map;
             this._tribe = config.tribe;
             this.depth = Constants.LAYER.UNITS;
 
-            let image = Game.INSTANCE.make.image({ x: config.x, y: config.y, scale: ratio, key: config.infos.key, add: false });
+            this.x = config.x;
+            this.y = config.y;
+
+            let image = this.scene.make.image({ x: 0, y: 0, scale: ratio, key: config.infos.key, add: false });
             this.add(image);
             this._image = image;
 
-            image.scale = ratio;
+            // Display HP
+            let style = {
+                fontSize: Helpers.font(30),
+                fontFamily: Constants.FONT.NUMBERS,
+                color: "#fff",
+                stroke: '#000',
+                strokeThickness: 5 * ratio,
+            };
+
+            let text = this.scene.make.bitmapText({
+                x: image.x,
+                y: image.y + image.displayHeight / 1.5,
+                font: "font_normal",
+                size: 30 * ratio,
+                text: `${this.infos.hp}`,
+                add: false
+            }).setOrigin(0.5)
+            this.add(text);
+
             this.currentTile.addClickable(this);
         }
 
@@ -102,6 +124,8 @@ module CIV {
 
                 for (let obj of this._moveRange) {
                     let h = obj.getHexPrint(0x00ffaa);
+                    h.x -= this.x
+                    h.y -= this.y
                     h.scale *= 0.75;
                     this._moveRangeGraphics.push(h);
                     h.alpha = 0.5
@@ -139,7 +163,7 @@ module CIV {
             this.state = UnitState.MOVING;
 
             Game.INSTANCE.add.tween({
-                targets: this._image,
+                targets: this,
                 x: tile.worldPosition.x,
                 y: tile.worldPosition.y,
                 duration: 50,

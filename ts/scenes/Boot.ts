@@ -38,18 +38,12 @@ module CIV {
             // Special resources
             this.load.image('hex_wheat', 'assets/resources/hex_wheat.png');
 
-            // Icons - number of resources
-            this.load.image('one', 'assets/resources/one.png');
-            this.load.image('two', 'assets/resources/two.png');
-            this.load.image('three', 'assets/resources/three.png');
-            this.load.image('four', 'assets/resources/four.png');
-            this.load.image('five', 'assets/resources/five.png');
-
             // Units
             this.load.json("units", "assets/jsons/units.json");
             this.load.json("resources", "assets/jsons/resources.json");
 
-            this.load.bitmapFont('font', 'assets/fonts/font.png', 'assets/fonts/font.xml');
+            this.load.bitmapFont('font_normal', 'assets/fonts/font_normal.png', 'assets/fonts/font_normal.xml');
+            // this.load.bitmapFont('font_small', 'assets/fonts/font_small.png', 'assets/fonts/font_small.xml');
 
         }
 

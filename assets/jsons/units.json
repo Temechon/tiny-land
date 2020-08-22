@@ -2,8 +2,9 @@
     {
         "name": "Warrior",
         "key": "warrior",
-        "range": 3,
+        "range": 1,
         "strength": 3,
+        "hpmax": 10,
         "cost": 5,
         "vision": 3
     },
@@ -12,6 +13,7 @@
         "key": "settler",
         "range": 5,
         "strength": 1,
+        "hpmax": 10,
         "cost": 10,
         "vision": 1
     }

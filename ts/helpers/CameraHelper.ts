@@ -88,7 +88,7 @@ module CIV {
 
             this.scene.input.on('wheel', (pointer, CameraHelperObjects, deltaX, deltaY, deltaZ) => {
 
-                console.log("CAMERA - Zoom:", this.scene.cameras.main.zoom);
+                // console.log("CAMERA - Zoom:", this.scene.cameras.main.zoom);
                 this.scene.cameras.main.zoom -= deltaY / 1000;
             });
 

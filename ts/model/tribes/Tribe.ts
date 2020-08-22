@@ -5,7 +5,7 @@ module CIV {
      */
     export class Tribe extends Phaser.GameObjects.Container {
 
-        static DEBUG_FOG_OF_WAR_ON = true;
+        static DEBUG_FOG_OF_WAR_ON = false;
 
         public cities: City[] = [];
         public units: Unit[] = [];

@@ -196,7 +196,7 @@ module CIV {
             let nbSprite = Game.INSTANCE.make.bitmapText({
                 x: p.x + 15 * ratio,
                 y: p.y + 15 * ratio,
-                font: "font",
+                font: "font_normal",
                 text: nb.toString(),
                 // size: 32 * ratio,
                 add: false
