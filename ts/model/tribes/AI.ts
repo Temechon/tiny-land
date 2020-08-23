@@ -25,7 +25,7 @@ module CIV {
                     // Get its move range
                     let moverange = unit.map.getMoveRange({
                         from: unit.currentTile,
-                        range: unit.infos.range
+                        movement: unit.infos.movement
                     })
 
                     // IF the unit can move

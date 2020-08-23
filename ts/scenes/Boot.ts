@@ -41,6 +41,7 @@ module CIV {
             // Units
             this.load.json("units", "assets/jsons/units.json");
             this.load.json("resources", "assets/jsons/resources.json");
+            this.load.json("tiles", "assets/jsons/tiles.json");
 
             this.load.bitmapFont('font_normal', 'assets/fonts/font_normal.png', 'assets/fonts/font_normal.xml');
             // this.load.bitmapFont('font_small', 'assets/fonts/font_small.png', 'assets/fonts/font_small.xml');

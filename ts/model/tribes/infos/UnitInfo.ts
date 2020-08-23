@@ -5,6 +5,8 @@ module CIV {
         key: string;
 
         /** The number of tile this unit can go through in one turn */
+        movement: number;
+        /** The number of tile this unit can attack an enemy */
         range: number;
         /** The number of tile this unit can see */
         vision: number;

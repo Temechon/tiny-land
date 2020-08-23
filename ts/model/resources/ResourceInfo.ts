@@ -1,5 +1,10 @@
 module CIV {
 
+    export enum ResourceType {
+        Gold,
+        Food,
+        Science
+    }
 
     export interface ResourceInfo {
         name: string;

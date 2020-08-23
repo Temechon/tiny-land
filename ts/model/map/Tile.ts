@@ -5,7 +5,7 @@ module CIV {
 
     export class Tile extends Phaser.GameObjects.Image {
 
-        public type: TileType = TileType.Land;
+        infos: TileInfo;
 
         /** All resources that can be found on this tile. Index: Resource type, value : number of this type */
         public resources: number[] = [];
@@ -37,7 +37,7 @@ module CIV {
             x: number,
             y: number,
             r: number,
-            q: number
+            q: number,
             key: string,
             map: WorldMap
         }) {
@@ -47,11 +47,28 @@ module CIV {
             this.rq = { r: config.r, q: config.q };
             this.name = chance.guid();
             this._map = config.map;
-
             this.setInteractive();
-
             this.on('pointerdown', this.onPointerDown.bind(this));
+        }
 
+        setInfos(infos: TileInfo) {
+            this.infos = _.extend({}, infos);
+
+            // Update texture
+            let key = infos.key;
+            if (Array.isArray(key)) {
+                key = chance.pickone(infos.key as string[]);
+            }
+            this.setTexture(key)
+
+            // Update resources
+            this.resources[ResourceType.Gold] = chance.weighted(infos.resources.Gold.values, infos.resources.Gold.weights);
+            this.resources[ResourceType.Food] = chance.weighted(infos.resources.Food.values, infos.resources.Food.weights);
+            this.resources[ResourceType.Science] = chance.weighted(infos.resources.Science.values, infos.resources.Science.weights);
+        }
+
+        get tileType(): TileType {
+            return this.infos.type;
         }
 
         get worldPosition(): Phaser.Types.Math.Vector2Like {
@@ -68,11 +85,11 @@ module CIV {
         }
 
         get isWater(): boolean {
-            return this.type === TileType.Water || this.type === TileType.DeepWater;
+            return this.infos.type === TileType.Water || this.infos.type === TileType.DeepWater;
         }
 
         get isLand(): boolean {
-            return this.type === TileType.Land
+            return this.infos.type === TileType.Land
         }
 
         get vertices(): Array<Vertex> {
@@ -360,7 +377,17 @@ module CIV {
          */
         public get hasUnit(): boolean {
             return this._onIt.filter(s => s instanceof Unit).length > 0;
-        }/** 
+        }
+
+
+        /**
+         * Returns the unit on this tile if any, undefined otherwise
+         */
+        public get unit(): Unit {
+            return this._onIt.filter(s => s instanceof Unit)[0] as Unit;
+        }
+
+        /** 
          * Returns true if this tile has a city on it, false otherwise
          */
         public get hasCity(): boolean {

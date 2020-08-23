@@ -126,7 +126,7 @@ module CIV {
                 }
             }
             groups.push(group);
-            console.log("groups of cities", groups);
+            // console.log("groups of cities", groups);
 
             for (let gg of groups) {
                 this._updateFrontiers(gg, g);

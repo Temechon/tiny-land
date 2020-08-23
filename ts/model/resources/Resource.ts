@@ -1,10 +1,5 @@
 module CIV {
 
-    export enum ResourceType {
-        Gold,
-        Food,
-        Science
-    }
 
     export abstract class Resource {
 

@@ -2,6 +2,7 @@
     {
         "name": "Warrior",
         "key": "warrior",
+        "movement": 1,
         "range": 1,
         "strength": 3,
         "hpmax": 10,
