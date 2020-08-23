@@ -87,7 +87,10 @@ module CIV {
         }
 
         setWaitingNextTurn() {
-            this._image.setTint(0x000000);
+            if (this._tribe.isPlayer) {
+                this._image.setTint(0x000000);
+            }
+
             this.state = UnitState.WAITING_NEXT_TURN;
         }
 
@@ -121,19 +124,7 @@ module CIV {
                 this.state = UnitState.ACTIVATED;
 
                 // Check if this unit can attack someone
-                let attackTiles = this.canAttackOnTiles();
-
-                this._moveRangeGraphics = [];
-                for (let tile of attackTiles) {
-                    let h = tile.getHexPrint(0xff3388);
-                    h.x -= this.x
-                    h.y -= this.y
-                    h.scale *= 0.75;
-                    this._moveRangeGraphics.push(h);
-                    h.alpha = 0.5
-                    this.add(h);
-                    h.on('pointerup', this.attack.bind(this, tile));
-                }
+                this._displayAttack(this.canAttackOnTiles());
 
                 // Display move range
                 this._moveRange = this.map.getMoveRange({
@@ -158,7 +149,7 @@ module CIV {
                     console.log("name settler!")
                     if (City.canCreateHere(this.currentTile, this._tribe)) {
 
-                        let img = this.scene.add.image(this.currentTile.worldPosition.x, this.currentTile.worldPosition.y, 'settler_create');
+                        let img = this.scene.add.image(0, 0, 'settler_create');
                         this.add(img);
                         img.depth = 100;
                         img.scale = ratio;
@@ -173,6 +164,24 @@ module CIV {
                     }
                 }
             }
+        }
+
+        /**
+         * Display hexes where the unit can attack
+         */
+        private _displayAttack(attackTiles: Tile[]) {
+            this._moveRangeGraphics = [];
+            for (let tile of attackTiles) {
+                let h = tile.getHexPrint(0xff3388);
+                h.x -= this.x
+                h.y -= this.y
+                h.scale *= 0.75;
+                this._moveRangeGraphics.push(h);
+                h.alpha = 0.5
+                this.add(h);
+                h.on('pointerup', this.attack.bind(this, tile));
+            }
+
         }
 
         /**
@@ -272,11 +281,18 @@ module CIV {
          * After movement, we check if this unit can attack another one. If so, engage attack mode
          */
         afterMove() {
-            let attackTiles = this.canAttackOnTiles();
+            if (this._tribe.isPlayer) {
+                let attackTiles = this.canAttackOnTiles();
 
-            if (attackTiles.length === 0) {
+                if (attackTiles.length === 0) {
+                    this.setWaitingNextTurn();
+                    return;
+                }
+                this._displayAttack(attackTiles);
+            } else {
+                // IA
+                // TODO
                 this.setWaitingNextTurn();
-                return;
             }
 
             console.log("ATTACK MODE")
