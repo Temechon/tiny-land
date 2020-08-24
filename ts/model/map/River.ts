@@ -86,14 +86,14 @@ module CIV {
             let points = this.vertices.map(p => new Phaser.Math.Vector2(p.x, p.y))
             points.push(new Phaser.Math.Vector2(river.end.x, river.end.y));
             path.splineTo(points);
-            this.graphics.lineStyle(30 * ratio, 0x5a8bd8);
+            this.graphics.lineStyle(25 * ratio, 0x5a8bd8);
             path.draw(this.graphics, 10 * this.tiles.length);
 
 
             path = new Phaser.Curves.Path(this.vertices[0].x, this.vertices[0].y);
             points = this.vertices.map(p => new Phaser.Math.Vector2(p.x, p.y))
             path.splineTo(points);
-            this.graphics.lineStyle(8 * ratio, 0xafe1f7);
+            this.graphics.lineStyle(4 * ratio, 0xafe1f7);
             path.draw(this.graphics, 10 * this.tiles.length);
         }
 
@@ -130,7 +130,7 @@ module CIV {
 
                 let possiblePicks = neighbours.filter(t =>
                     HexGrid.axialDistance(t.rq.q, t.rq.r, to.rq.q, to.rq.r) < dist &&
-                    !t.isWater &&
+                    // t.tileType !== TileType.Water && t.tileType !== TileType.DeepWater &&
                     !this.isInRiver(t, res));
 
                 //If no possible pick, the river cannot be finished

@@ -18,12 +18,16 @@ module CIV {
             this.load.image('toundra', 'assets/hex_toundra.png');
             this.load.image('land', 'assets/hex_land.png');
             this.load.image('land2', 'assets/hex_land2.png');
+            this.load.image('land3', 'assets/hex_land3.png');
             this.load.image('water', 'assets/hex_water.png');
+            this.load.image('beach', 'assets/hex_beach.png');
             this.load.image('deepwater', 'assets/hex_deepwater.png');
             this.load.image('forest', 'assets/hex_forest.png');
 
             this.load.image('tree', 'assets/tree.png');
+            this.load.image('tree2', 'assets/tree2.png');
             this.load.image('mountain', 'assets/mountain.png');
+            this.load.image('coast', 'assets/coast.png');
 
             this.load.image('city', 'assets/city.png');
 

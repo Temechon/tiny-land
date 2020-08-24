@@ -61,7 +61,7 @@ module CIV {
                     y: center.y * ratio,
                     r: c.r,
                     q: c.q,
-                    key: 'hex',
+                    key: 'land',
                     map: this
                 });
                 this.push(tile);
@@ -78,6 +78,13 @@ module CIV {
 
                 if (noise < Constants.MAP.WATER.THRESHOLD) {
                     tile.setInfos(allTilesType[TileType.Water]);
+                    continue
+                }
+
+                if (noise < Constants.MAP.BEACH) {
+                    tile.setInfos(allTilesType[TileType.Water]);
+                    tile.infos.type = TileType.Beach;
+                    tile.setTexture("beach")
                     continue
                 }
 
@@ -111,6 +118,23 @@ module CIV {
 
             // Add this tile to the land graph
             this.doForAllTiles(t => this.addTileToGraph(t), t => !t.isWater)
+
+            // COASTS
+            this.doForAllTiles(t => {
+                let landNeighbours = this.getNeighbours(t).filter(tt => !tt.isWater);
+                if (landNeighbours.length > 0) {
+
+                    for (let ln of landNeighbours) {
+                        let dir = t.getNeighbouringDirection(ln);
+                        let coast = this.scene.add.image(t.worldPosition.x, t.worldPosition.y, "coast")
+                        coast.depth = 4;
+                        coast.angle = dir * 60;
+                        coast.scale = ratio;
+                        t.assets.push(coast);
+                    }
+                }
+
+            }, t => t.tileType === TileType.Beach);
 
             // Create rivers
             try {
@@ -146,9 +170,10 @@ module CIV {
             // TREES /MOUNTAINS !
             this.doForAllTiles(t => {
                 let img;
+                let trees = ['tree', 'tree2'];
                 if (t.tileType === TileType.Forest) {
-                    img = Game.INSTANCE.add.image(t.worldPosition.x, t.worldPosition.y, 'tree');
-                    img.setOrigin(0.5, 0.75)
+                    img = Game.INSTANCE.add.image(t.worldPosition.x, t.worldPosition.y, chance.pickone(trees));
+                    img.setOrigin(0.5, 0.65)
                 }
                 if (t.tileType === TileType.Mountain) {
                     img = Game.INSTANCE.add.image(t.worldPosition.x, t.worldPosition.y, 'mountain');
@@ -284,9 +309,7 @@ module CIV {
         getClosestWaterTile(tile: Tile): { distance: number, tile: Tile } {
             let distance = 1
             while (true) {
-                let waterTiles = this.getTilesByAxialCoords(
-                    this._grid.ring(tile.rq.q, tile.rq.r, distance)
-                ).filter(t => t.tileType === TileType.Water)
+                let waterTiles = this.getTilesByAxialCoords(this._grid.ring(tile.rq.q, tile.rq.r, distance)).filter(t => t.tileType === TileType.Water)
                 if (waterTiles.length === 0) {
                     distance++;
                     continue;

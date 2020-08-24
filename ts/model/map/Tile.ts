@@ -1,5 +1,14 @@
 module CIV {
 
+    enum NEIGHBOURS_DIRECTIONS {
+        NORTH_WEST = 0,
+        NORTH_EAST = 1,
+        EAST = 2,
+        SOUTH_EAST = 3,
+        SOUTH_WEST = 4,
+        WEST = 5
+    }
+
     export type Vertex = { coords: Phaser.Types.Math.Vector2Like, neighbours: number[] };
     export type RQ = { r: number, q: number };
 
@@ -85,7 +94,7 @@ module CIV {
         }
 
         get isWater(): boolean {
-            return this.infos.type === TileType.Water || this.infos.type === TileType.DeepWater;
+            return this.infos.type === TileType.Water || this.infos.type === TileType.DeepWater || this.infos.type === TileType.Beach;
         }
 
         get isLand(): boolean {
@@ -395,6 +404,34 @@ module CIV {
         }
         public get isEmpty(): boolean {
             return this._onIt.length === 0;
+        }
+
+        /**
+         * Return the direction the other hex is relative to this one.
+         */
+        getNeighbouringDirection(other: Tile): NEIGHBOURS_DIRECTIONS {
+            // NORTH_EAST or SOUTH_WEST
+            if (this.rq.q === other.rq.q) {
+                // NORTH_WEST
+                if (this.rq.r - 1 === other.rq.r) {
+                    return NEIGHBOURS_DIRECTIONS.SOUTH_WEST;
+                }
+                return NEIGHBOURS_DIRECTIONS.NORTH_EAST;
+
+            }
+            // EAST or WEST
+            if (this.rq.r === other.rq.r) {
+                // EAST
+                if (this.rq.q + 1 === other.rq.q) {
+                    return NEIGHBOURS_DIRECTIONS.EAST;
+                }
+                return NEIGHBOURS_DIRECTIONS.WEST
+            }
+
+            if (this.rq.q + 1 === other.rq.q) {
+                return NEIGHBOURS_DIRECTIONS.SOUTH_EAST
+            }
+            return NEIGHBOURS_DIRECTIONS.NORTH_WEST
         }
 
         /**

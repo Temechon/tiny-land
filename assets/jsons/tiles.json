@@ -3,7 +3,8 @@
         "type": "land",
         "key": [
             "land",
-            "land2"
+            "land2",
+            "land3"
         ],
         "defenseModifier": 0,
         "resources": {
@@ -82,7 +83,7 @@
     },
     {
         "type": "deepwater",
-        "key": "water",
+        "key": "deepwater",
         "defenseModifier": 0,
         "resources": {
             "Gold": {
@@ -121,7 +122,10 @@
     },
     {
         "type": "forest",
-        "key": "forest",
+        "key": [
+            "land",
+            "land2"
+        ],
         "defenseModifier": 0.25,
         "resources": {
             "Gold": {
