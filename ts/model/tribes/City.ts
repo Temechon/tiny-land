@@ -19,6 +19,7 @@ module CIV {
         private _influenceTiles: Tile[] = [];
 
         name: string;
+        nameText: Phaser.GameObjects.BitmapText;
 
         constructor(config: {
             worldmap: WorldMap,
@@ -42,7 +43,7 @@ module CIV {
             this.add(cityImage)
 
 
-            let nameText = this.scene.make.bitmapText({
+            this.nameText = this.scene.make.bitmapText({
                 x: this.tile.worldPosition.x,
                 y: this.tile.worldPosition.y,
                 font: "font_normal",
@@ -217,6 +218,11 @@ module CIV {
         deactivate() {
             this.scene.events.emit(Constants.EVENTS.CIRCULAR_MENU_OFF);
             console.log("CITY DEACTIVATED");
+        }
+
+        destroy() {
+            this.nameText.destroy();
+            super.destroy();
         }
     }
 }
