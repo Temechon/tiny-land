@@ -19,14 +19,15 @@ module CIV {
             this.load.image('land', 'assets/hex_land.png');
             this.load.image('land2', 'assets/hex_land2.png');
             this.load.image('land3', 'assets/hex_land3.png');
+            this.load.image('land4', 'assets/hex_land4.png');
             this.load.image('water', 'assets/hex_water.png');
             this.load.image('beach', 'assets/hex_beach.png');
             this.load.image('deepwater', 'assets/hex_deepwater.png');
-            this.load.image('forest', 'assets/hex_forest.png');
 
             this.load.image('tree', 'assets/tree.png');
             this.load.image('tree2', 'assets/tree2.png');
             this.load.image('mountain', 'assets/mountain.png');
+            this.load.image('mountain2', 'assets/mountain2.png');
             this.load.image('coast', 'assets/coast.png');
 
             this.load.image('city', 'assets/city.png');
@@ -36,11 +37,15 @@ module CIV {
             this.load.image('settler', 'assets/units/settler.png');
             this.load.image('settler_create', 'assets/units/settler_create.png');
 
-            this.load.image('food', 'assets/resources/food.png');
-            this.load.image('gold', 'assets/resources/gold.png');
-            this.load.image('research', 'assets/resources/research.png');
+            // UI
+            this.load.image('foodIcon', 'assets/hud/food.png');
+            this.load.image('goldIcon', 'assets/hud/gold.png');
+            this.load.image('researchIcon', 'assets/hud/research.png');
+
             // Special resources
-            this.load.image('hex_wheat', 'assets/resources/hex_wheat.png');
+            this.load.image('wheat', 'assets/resources/wheat.png');
+            this.load.image('iron', 'assets/resources/iron.png');
+            this.load.image('gold', 'assets/resources/gold.png');
 
             // Units
             this.load.json("units", "assets/jsons/units.json");

@@ -1,12 +1,32 @@
 [
     {
         "name": "Wheat",
-        "key": "hex_wheat",
+        "key": "wheat",
         "canBeFoundOn": [
             "land"
         ],
         "bonus": {
             "Food": "+2"
+        }
+    },
+    {
+        "name": "Iron",
+        "key": "iron",
+        "canBeFoundOn": [
+            "mountain"
+        ],
+        "bonus": {
+            "Gold": "+2"
+        }
+    },
+    {
+        "name": "Gold",
+        "key": "gold",
+        "canBeFoundOn": [
+            "mountain"
+        ],
+        "bonus": {
+            "Gold": "+2"
         }
     }
 ]

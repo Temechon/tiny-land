@@ -171,12 +171,13 @@ module CIV {
             this.doForAllTiles(t => {
                 let img;
                 let trees = ['tree', 'tree2'];
+                let mountain = ['mountain', 'mountain2'];
                 if (t.tileType === TileType.Forest) {
                     img = Game.INSTANCE.add.image(t.worldPosition.x, t.worldPosition.y, chance.pickone(trees));
                     img.setOrigin(0.5, 0.65)
                 }
                 if (t.tileType === TileType.Mountain) {
-                    img = Game.INSTANCE.add.image(t.worldPosition.x, t.worldPosition.y, 'mountain');
+                    img = Game.INSTANCE.add.image(t.worldPosition.x, t.worldPosition.y, chance.pickone(mountain));
                 }
 
                 t.assets.push(img);
@@ -200,7 +201,11 @@ module CIV {
 
                 let tiles = this.getEvenlyLocatedTiles(numberOfResources, Constants.MAP.SIZE * 2, t => res.canBeFoundOn.indexOf(t.tileType) !== -1);
                 for (let t of tiles) {
-                    t.setTexture(res.key);
+
+                    let img = Game.INSTANCE.add.image(t.worldPosition.x, t.worldPosition.y, res.key);
+                    t.assets.push(img);
+                    img.scale = ratio;
+                    img.depth = Constants.LAYER.TREES;
 
                     // Add ressources on this tile
                     for (let key in res.bonus) {

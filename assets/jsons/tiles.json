@@ -4,7 +4,8 @@
         "key": [
             "land",
             "land2",
-            "land3"
+            "land3",
+            "land4"
         ],
         "defenseModifier": 0,
         "resources": {
@@ -124,7 +125,8 @@
         "type": "forest",
         "key": [
             "land",
-            "land2"
+            "land2",
+            "land3"
         ],
         "defenseModifier": 0.25,
         "resources": {
@@ -164,7 +166,7 @@
     },
     {
         "type": "mountain",
-        "key": "forest",
+        "key": "land3",
         "defenseModifier": 0.5,
         "resources": {
             "Gold": {
