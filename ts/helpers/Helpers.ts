@@ -2,6 +2,13 @@ module CIV {
 
     export class Helpers {
 
+        static getCityName() {
+            let pre = ['Ply', 'Ex', 'Nor', 'Fat', 'Yar', 'Stoke', 'Castle', 'Ash', 'Wil', 'Tam'];
+            let suf = ['mont', 'pol', 'die', 'ville', 'stone', 'west', 'gow', 'hill', 'ham'];
+
+            let qualif = ['Great ', 'New ', ''];
+            return chance.pickone(qualif) + chance.pickone(pre) + chance.pickone(suf);
+        }
 
         /**
          * Returns the string to be used as a style to create a phaser text

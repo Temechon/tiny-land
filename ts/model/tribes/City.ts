@@ -18,25 +18,38 @@ module CIV {
         /** All tiles in the influence area of this city */
         private _influenceTiles: Tile[] = [];
 
+        name: string;
+
         constructor(config: {
             worldmap: WorldMap,
             tile: Tile,
             tribe: Tribe
         }) {
-            super(Game.INSTANCE);
+            super(Game.INSTANCE, config.tile.worldPosition.x, config.tile.worldPosition.y);
             this.tile = config.tile;
             this.worldmap = config.worldmap;
             this._tribe = config.tribe;
 
             let cityImage = Game.INSTANCE.make.image({
-                x: this.tile.worldPosition.x,
-                y: this.tile.worldPosition.y,
+                x: 0,
+                y: 0,
                 key: 'city',
                 scale: ratio,
                 add: false
             });
+            this.name = Helpers.getCityName();
 
             this.add(cityImage)
+
+
+            let nameText = this.scene.make.bitmapText({
+                x: this.tile.worldPosition.x,
+                y: this.tile.worldPosition.y,
+                font: "font_normal",
+                size: 45 * ratio,
+                text: this.name,
+                depth: 10
+            }).setOrigin(0.5, -1.5);
 
             // Remove assets from the tile
             for (let ass of this.tile.assets) {
@@ -46,6 +59,7 @@ module CIV {
             // Draw its influence area
             this.updateInfluenceTiles();
             this.tile.addClickable(this);
+
         }
 
         get worldposition(): Phaser.Types.Math.Vector2Like {
