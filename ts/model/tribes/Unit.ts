@@ -88,7 +88,7 @@ module CIV {
 
         setWaitingNextTurn() {
             if (this._tribe.isPlayer) {
-                this._image.setTint(0x000000);
+                this._image.setTint(0x555555);
             }
 
             this.state = UnitState.WAITING_NEXT_TURN;
@@ -232,46 +232,75 @@ module CIV {
             this._tribe.removeFogOfWar(vision);
         }
 
+        /**
+         * Attack the unit on the given tile.
+         */
         attack(tile: Tile) {
             this.state = UnitState.ATTACKING;
 
             // Get unit on the other side
             let enemy = tile.unit;
 
-            // TODO get terrain modifier for defence
+            // get terrain modifier for defence
             let terrainModifierAttacker = this.currentTile.infos.defenseModifier;
             let terrainModifierDefencer = tile.infos.defenseModifier;
 
-            let hpRatio = this.infos.hp / this.infos.hpmax * 2;
-            let hpRatioDefencer = enemy.infos.hp / enemy.infos.hpmax * 2;
+            // Animation and compute damage
+            // Here, the unit is attacking the enemy
+            Game.INSTANCE.add.tween({
+                targets: this,
+                x: tile.worldPosition.x,
+                y: tile.worldPosition.y,
+                duration: 150,
+                ease: Phaser.Math.Easing.Expo.InOut,
+                onComplete: () => {
+                    // Compute damage
+                    let hpRatio = this.infos.hp / this.infos.hpmax * 2;
+                    let baseDamageAttacker = this.infos.strength * (chance.floating({ min: 1, max: 1.2 }) - terrainModifierDefencer) * hpRatio;
+                    console.log("Attacker deals", Phaser.Math.Clamp(Math.round(baseDamageAttacker), 0, enemy.infos.hp))
+                    enemy.infos.hp -= Phaser.Math.Clamp(Math.round(baseDamageAttacker), 0, enemy.infos.hp);
+                    enemy._text.text = enemy.infos.hp.toString();
 
-            let baseDamageAttacker = this.infos.strength * (chance.floating({ min: 1.25, max: 1.5 }) - terrainModifierDefencer) * hpRatio;
-            let baseDamageDefenser = enemy.infos.strength * (chance.floating({ min: 0.8, max: 1 }) - terrainModifierAttacker) * hpRatioDefencer;
+                    if (enemy.infos.hp <= 0) {
+                        enemy.die();
+                        // Move to the enemy tile
+                        this.move(tile);
+                    } else {
+                        // Move the attacker back to its tile
+                        Game.INSTANCE.add.tween({
+                            targets: this,
+                            x: this.currentTile.worldPosition.x,
+                            y: this.currentTile.worldPosition.y,
+                            duration: 150,
+                            ease: Phaser.Math.Easing.Expo.InOut
+                        });
 
-            console.log("Attacker deals", Phaser.Math.Clamp(Math.round(baseDamageAttacker), 0, enemy.infos.hp))
-            console.log("Defencer deals", Phaser.Math.Clamp(Math.round(baseDamageDefenser), 0, enemy.infos.hp))
+                        // IF the enemy didn't die, it defends itself
+                        Game.INSTANCE.add.tween({
+                            targets: enemy,
+                            delay: 150,
+                            x: this.currentTile.worldPosition.x,
+                            y: this.currentTile.worldPosition.y,
+                            ease: Phaser.Math.Easing.Expo.InOut,
+                            duration: 150,
+                            yoyo: true,
+                            onComplete: () => {
+                                let hpRatioDefencer = enemy.infos.hp / enemy.infos.hpmax * 2;
+                                let baseDamageDefenser = enemy.infos.strength * (chance.floating({ min: 0.9, max: 1.1 }) - terrainModifierAttacker) * hpRatioDefencer;
+                                console.log("Defencer deals", Phaser.Math.Clamp(Math.round(baseDamageDefenser), 0, enemy.infos.hp))
 
-            enemy.infos.hp -= Phaser.Math.Clamp(Math.round(baseDamageAttacker), 0, enemy.infos.hp);
-            this.infos.hp -= Phaser.Math.Clamp(Math.round(baseDamageDefenser), 0, this.infos.hp);
+                                this.infos.hp -= Phaser.Math.Clamp(Math.round(baseDamageDefenser), 0, this.infos.hp);
 
-            this._text.text = this.infos.hp.toString();
-            enemy._text.text = enemy.infos.hp.toString();
+                                this._text.text = this.infos.hp.toString();
 
-
-            if (this.infos.hp <= 0) {
-                this.die();
-            }
-            if (enemy.infos.hp <= 0) {
-                enemy.die();
-            }
-
-            // Game.INSTANCE.add.tween({
-            //     targets: this,
-            //     x: tile.worldPosition.x,
-            //     y: tile.worldPosition.y,
-            //     duration: 50,
-            //     onComplete: this.afterMove.bind(this)
-            // })
+                                if (this.infos.hp <= 0) {
+                                    this.die();
+                                }
+                            }
+                        })
+                    }
+                }
+            })
 
             // Deactivate this unit
             this.deactivate();
@@ -302,9 +331,14 @@ module CIV {
          * Make this unit die... Destroy from the world and remove from the tribe
          */
         die() {
+            // Deactivate this unit
+            this.deactivate();
+            // Remove this unit from the current tile
+            this.currentTile.removeClickable(this);
             // Remove this unit from its tribe
             let i = this._tribe.units.indexOf(this);
             this._tribe.units.splice(i, 1);
+
             // DEAD
             this.destroy();
         }

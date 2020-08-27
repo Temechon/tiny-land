@@ -129,8 +129,8 @@ module CIV {
                 }
 
                 let possiblePicks = neighbours.filter(t =>
-                    HexGrid.axialDistance(t.rq.q, t.rq.r, to.rq.q, to.rq.r) < dist &&
-                    // t.tileType !== TileType.Water && t.tileType !== TileType.DeepWater &&
+                    HexGrid.axialDistance(t.rq.q, t.rq.r, to.rq.q, to.rq.r) <= dist &&
+                    t.tileType !== TileType.Water && t.tileType !== TileType.DeepWater &&
                     !this.isInRiver(t, res));
 
                 //If no possible pick, the river cannot be finished

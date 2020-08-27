@@ -13,7 +13,7 @@ abstract class Constants {
 
     public static MAP = {
         /** The map size */
-        SIZE: 10, // 15 will be the final size
+        SIZE: 5, // 15 will be the final size
 
         /** Noise parameters for water */
         DEEPWATER: 50,
@@ -27,7 +27,7 @@ abstract class Constants {
             THRESHOLD: 70 // Less is les water
         },
 
-        BEACH: 80,
+        BEACH: 75,
 
         /** Noise parameters for forest */
         FOREST: {

@@ -94,11 +94,11 @@ module CIV {
         }
 
         get isWater(): boolean {
-            return this.infos.type === TileType.Water || this.infos.type === TileType.DeepWater || this.infos.type === TileType.Beach;
+            return this.infos.type === TileType.Water || this.infos.type === TileType.DeepWater;
         }
 
         get isLand(): boolean {
-            return this.infos.type === TileType.Land
+            return this.infos.type === TileType.Land || this.tileType === TileType.Forest;
         }
 
         get vertices(): Array<Vertex> {

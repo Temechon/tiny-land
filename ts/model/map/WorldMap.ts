@@ -121,7 +121,7 @@ module CIV {
 
             // COASTS
             this.doForAllTiles(t => {
-                let landNeighbours = this.getNeighbours(t).filter(tt => !tt.isWater);
+                let landNeighbours = this.getNeighbours(t).filter(tt => !tt.isWater && tt.tileType !== TileType.Beach);
                 if (landNeighbours.length > 0) {
 
                     for (let ln of landNeighbours) {
