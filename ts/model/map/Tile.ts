@@ -14,10 +14,16 @@ module CIV {
 
     export class Tile extends Phaser.GameObjects.Image {
 
+        static SELECTOR: Phaser.GameObjects.Image = null;
+        static SELECTED_TILE: Tile = null;
+
         infos: TileInfo;
 
         /** All resources that can be found on this tile. Index: Resource type, value : number of this type */
         public resources: number[] = [];
+
+        /** The bonus resource that can be found on this tile, null if no bonus resource*/
+        bonusResource: ResourceInfo = null;
 
         public hasRiver: boolean = false;
 
@@ -57,7 +63,7 @@ module CIV {
             this.name = chance.guid();
             this._map = config.map;
             this.setInteractive();
-            this.on('pointerdown', this.onPointerDown.bind(this));
+            this.on('pointerup', this.onPointerUp.bind(this));
         }
 
         setInfos(infos: TileInfo) {
@@ -69,11 +75,12 @@ module CIV {
                 key = chance.pickone(infos.key as string[]);
             }
             this.setTexture(key)
+            this.infos.key = key;
 
             // Update resources
-            this.resources[ResourceType.Gold] = chance.weighted(infos.resources.Gold.values, infos.resources.Gold.weights);
-            this.resources[ResourceType.Food] = chance.weighted(infos.resources.Food.values, infos.resources.Food.weights);
-            this.resources[ResourceType.Science] = chance.weighted(infos.resources.Science.values, infos.resources.Science.weights);
+            this.resources[ResourceType.Gold] = parseInt(infos.resources.Gold) || 0;
+            this.resources[ResourceType.Food] = parseInt(infos.resources.Food) || 0;
+            this.resources[ResourceType.Science] = parseInt(infos.resources.Science) || 0;
         }
 
         get tileType(): TileType {
@@ -103,6 +110,36 @@ module CIV {
 
         get vertices(): Array<Vertex> {
             return this._vertices;
+        }
+
+        /**
+         * Returns the title of this tile, depending if it's a city or another thing
+         */
+        get tileTitle(): string {
+            if (this.hasCity) {
+                return this.city.name
+            }
+            switch (this.tileType) {
+                case TileType.Land:
+                    return 'Hill'
+                case TileType.Mountain:
+                    return 'Mountain'
+                case TileType.Water:
+                case TileType.DeepWater:
+                    return 'Water'
+                case TileType.Beach:
+                    return 'Beach'
+                case TileType.Forest:
+                    return 'Forest'
+                case TileType.Toundra:
+                    return 'Toundra'
+            }
+        }
+        /**
+         * Returns the tile description 
+         */
+        get tileDescription(): string {
+            return this.infos.defenseModifier.toString()
         }
 
         /**
@@ -326,8 +363,56 @@ module CIV {
             // return img;
         }
 
-        public onPointerDown() {
+        public onPointerUp() {
+
+            if (Tile.SELECTOR) {
+                Tile.SELECTOR.destroy();
+            }
+            if (Tile.SELECTED_TILE && Tile.SELECTED_TILE.name === this.name) {
+                this.scene.events.emit(Constants.EVENTS.UI_OFF);
+                Tile.SELECTED_TILE = null;
+                return;
+            }
+            if (CameraHelper.MOVING) {
+                return;
+            }
+            Tile.SELECTED_TILE = this;
+
+            let selector = this.scene.add.image(this.worldPosition.x, this.worldPosition.y, 'selector');
+            selector.scale = ratio;
+            selector.depth = 4;
+            Tile.SELECTOR = selector;
+
             console.log('tile selected!', this.rq)
+
+            // Display bot panel
+            let keys = [this.infos.key];
+            for (let onit of this._onIt) {
+                keys.push(onit.getTexture());
+            }
+            for (let ass of this.assets) {
+                keys.push(ass.texture.key);
+            }
+            let panelConfig = {
+                title: this.tileTitle,
+                key: keys,
+                description: this.tileDescription,
+                resources: {
+                    food: this.resources[ResourceType.Food],
+                    gold: this.resources[ResourceType.Gold],
+                    science: this.resources[ResourceType.Science],
+                }
+            } as PanelConfig;
+            if (this.bonusResource) {
+                panelConfig.bonus = {
+                    name: this.bonusResource.name,
+                    description: this.bonusResource.description,
+                    food: this.bonusResource.bonus.Food,
+                    gold: this.bonusResource.bonus.Gold,
+                    science: this.bonusResource.bonus.Science,
+                }
+            }
+            this.scene.events.emit(Constants.EVENTS.BOT_PANEL_ON, panelConfig)
 
             // Deactivate all other tiles
             this._map.deactivateAllOtherTiles(this);
@@ -402,6 +487,10 @@ module CIV {
         public get hasCity(): boolean {
             return this._onIt.filter(s => s instanceof City).length > 0;
         }
+        public get city(): City {
+            return this._onIt.filter(s => s instanceof City)[0] as City;
+        }
+
         public get isEmpty(): boolean {
             return this._onIt.length === 0;
         }
@@ -485,10 +574,14 @@ module CIV {
         }
 
         destroy() {
+            this.removeAssets();
+            super.destroy();
+        }
+        removeAssets() {
             for (let ass of this.assets) {
                 ass.destroy();
             }
-            super.destroy();
+            this.assets = [];
         }
     }
 

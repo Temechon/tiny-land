@@ -7,7 +7,8 @@
         ],
         "bonus": {
             "Food": "+2"
-        }
+        },
+        "description": "Available by building a farm"
     },
     {
         "name": "Iron",
@@ -16,8 +17,9 @@
             "mountain"
         ],
         "bonus": {
-            "Gold": "+2"
-        }
+            "Science": "+2"
+        },
+        "description": "Available by building a quarry"
     },
     {
         "name": "Gold",
@@ -27,6 +29,7 @@
         ],
         "bonus": {
             "Gold": "+2"
-        }
+        },
+        "description": "Available by building a quarry"
     }
 ]

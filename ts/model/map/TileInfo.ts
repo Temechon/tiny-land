@@ -8,9 +8,9 @@ module CIV {
         defenseModifier: number;
 
         resources: {
-            Food?: { values: number[], weights: number[] },
-            Science?: { values: number[], weights: number[] },
-            Gold?: { values: number[], weights: number[] },
+            Food?: string,
+            Science?: string,
+            Gold?: string,
         }
 
     }

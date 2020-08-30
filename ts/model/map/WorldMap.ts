@@ -85,6 +85,7 @@ module CIV {
                     tile.setInfos(allTilesType[TileType.Water]);
                     tile.infos.type = TileType.Beach;
                     tile.setTexture("beach")
+                    tile.infos.key = "beach";
                     continue
                 }
 
@@ -182,7 +183,7 @@ module CIV {
 
                 t.assets.push(img);
                 img.scale = ratio;
-                img.depth = Constants.LAYER.TREES;
+                img.depth = Constants.LAYER.TREES_AND_RESOURCES;
                 // this.add(tree);
 
             }, t => t.tileType === TileType.Forest || t.tileType === TileType.Mountain)
@@ -205,14 +206,10 @@ module CIV {
                     let img = Game.INSTANCE.add.image(t.worldPosition.x, t.worldPosition.y, res.key);
                     t.assets.push(img);
                     img.scale = ratio;
-                    img.depth = Constants.LAYER.TREES;
+                    img.depth = Constants.LAYER.TREES_AND_RESOURCES;
 
                     // Add ressources on this tile
-                    for (let key in res.bonus) {
-                        let value = parseInt(res.bonus[key]);
-                        console.log(key, value);
-                        t.resources[ResourceType[key]] += value;
-                    }
+                    t.bonusResource = res;
                 }
             }
 

@@ -79,6 +79,11 @@ module CIV {
             this.currentTile.addClickable(this);
         }
 
+
+        getTexture(): string {
+            return this._image.texture.key;
+        }
+
         /**
          * True if this unit can move
          */

@@ -18,6 +18,8 @@ module CIV {
         /** All tiles in the influence area of this city */
         private _influenceTiles: Tile[] = [];
 
+        private _image: Phaser.GameObjects.Image;
+
         name: string;
         nameText: Phaser.GameObjects.BitmapText;
 
@@ -31,6 +33,8 @@ module CIV {
             this.worldmap = config.worldmap;
             this._tribe = config.tribe;
 
+            this.tile.removeAssets();
+
             let cityImage = Game.INSTANCE.make.image({
                 x: 0,
                 y: 0,
@@ -39,6 +43,7 @@ module CIV {
                 add: false
             });
             this.name = Helpers.getCityName();
+            this._image = cityImage;
 
             this.add(cityImage)
 
@@ -72,6 +77,10 @@ module CIV {
          */
         get hasUnit(): boolean {
             return this.tile.hasUnit;
+        }
+
+        getTexture(): string {
+            return this._image.texture.key;
         }
 
         /**

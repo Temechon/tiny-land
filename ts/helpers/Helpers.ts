@@ -3,7 +3,7 @@ module CIV {
     export class Helpers {
 
         static getCityName() {
-            let pre = ['Ply', 'Ex', 'Nor', 'Fat', 'Yar', 'Stoke', 'Castle', 'Ash', 'Wil', 'Tam'];
+            let pre = ['Ply', 'Ex', 'Nor', 'Fat', 'Yar', 'Stoke', 'Castle', 'Ash', 'Wil', 'Tam', 'Nak', 'Plo', 'Tyr', 'Wood', 'New'];
             let suf = ['mont', 'pol', 'die', 'ville', 'stone', 'west', 'gow', 'hill', 'ham'];
 
             let qualif = ['Great ', 'New ', ''];

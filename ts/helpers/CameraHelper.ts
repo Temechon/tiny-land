@@ -19,6 +19,9 @@ module CIV {
         static BEGIN = 'BEGIN';
         static RECOGNIZED = 'RECOGNIZED';
 
+        distanceDragged = 0;
+
+        static MOVING = false;
 
         constructor(public scene: Phaser.Scene) {
 
@@ -70,9 +73,11 @@ module CIV {
                     this.pointers.splice(index, 1);
                 }
 
+                this.distanceDragged = 0;
                 switch (this.tracerState) {
                     case CameraHelper.TOUCH1:
                         this.tracerState = CameraHelper.TOUCH0;
+                        CameraHelper.MOVING = false;
                         // text2.text = "TOUCH 1 -> TOUCH0"
                         // this.onDrag1End();
                         break;
@@ -103,11 +108,17 @@ module CIV {
                     }
                     if (this.movedState[pointer.id]) {
                         let camera = this.scene.cameras.main;
+                        this.scene.events.emit(Constants.EVENTS.UI_OFF)
                         switch (this.tracerState) {
                             case CameraHelper.TOUCH1:
                                 // this.onDrag1();
                                 // this.scene.events.emit("circularmenuoff")
                                 let drag1Vector = this.drag1Vector;
+                                this.distanceDragged += drag1Vector.x * drag1Vector.x + drag1Vector.y * drag1Vector.y;
+                                if (this.distanceDragged > 100) {
+                                    CameraHelper.MOVING = true;
+                                }
+
                                 camera.scrollX -= drag1Vector.x / camera.zoom;
                                 camera.scrollY -= drag1Vector.y / camera.zoom;
                                 break;
@@ -140,6 +151,7 @@ module CIV {
                     this.scaleFactor = curDistance / this.prevDistance;
                     // this.emit('pinch', this);
                     this.prevDistance = curDistance;
+                    CameraHelper.MOVING = true;
                     break;
             }
         }

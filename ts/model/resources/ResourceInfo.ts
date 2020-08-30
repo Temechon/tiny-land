@@ -9,11 +9,12 @@ module CIV {
     export interface ResourceInfo {
         name: string;
         key: string;
+        description: string,
         canBeFoundOn: TileType[];
         bonus: {
-            food?: string,
-            science?: string,
-            gold?: string
+            Food?: string,
+            Science?: string,
+            Gold?: string
         }
     }
 }

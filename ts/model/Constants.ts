@@ -53,7 +53,7 @@ abstract class Constants {
         FOG_OF_WAR: 20,
         RESOURCES_MAP: 17,
         UNITS: 10,
-        TREES: 5,
+        TREES_AND_RESOURCES: 5,
         TRIBE_PLAYER: 3,
         TRIBE_ROOT: 2,
         MAP: {
@@ -65,6 +65,8 @@ abstract class Constants {
     static EVENTS = {
         CIRCULAR_MENU_ON: "circularmenuon",
         CIRCULAR_MENU_OFF: "circularmenuoff",
-        UI_UPDATE: "uiupdate"
+        UI_UPDATE: "uiupdate",
+        BOT_PANEL_ON: "botpanelon",
+        UI_OFF: "uioff"
     }
 }

@@ -29,6 +29,8 @@ module CIV {
             this.load.image('mountain2', 'assets/mountain2.png');
             this.load.image('coast', 'assets/coast.png');
 
+            this.load.image('selector', 'assets/selector.png');
+
             this.load.image('city', 'assets/city.png');
 
             // Units
@@ -39,7 +41,7 @@ module CIV {
             // UI
             this.load.image('foodIcon', 'assets/hud/food.png');
             this.load.image('goldIcon', 'assets/hud/gold.png');
-            this.load.image('researchIcon', 'assets/hud/research.png');
+            this.load.image('scienceIcon', 'assets/hud/research.png');
 
             // Special resources
             this.load.image('wheat', 'assets/resources/wheat.png');

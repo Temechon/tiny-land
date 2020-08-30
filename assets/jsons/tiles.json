@@ -9,38 +9,8 @@
         ],
         "defenseModifier": 0,
         "resources": {
-            "Gold": {
-                "values": [
-                    1,
-                    2
-                ],
-                "weights": [
-                    1,
-                    0.75
-                ]
-            },
-            "Food": {
-                "values": [
-                    1,
-                    2,
-                    3
-                ],
-                "weights": [
-                    1,
-                    0.5,
-                    0.25
-                ]
-            },
-            "Science": {
-                "values": [
-                    0,
-                    1
-                ],
-                "weights": [
-                    0.75,
-                    0.25
-                ]
-            }
+            "Gold": "+1",
+            "Food": "+1"
         }
     },
     {
@@ -48,38 +18,7 @@
         "key": "water",
         "defenseModifier": 0,
         "resources": {
-            "Gold": {
-                "values": [
-                    1,
-                    2
-                ],
-                "weights": [
-                    1,
-                    0.75
-                ]
-            },
-            "Food": {
-                "values": [
-                    1,
-                    2,
-                    3
-                ],
-                "weights": [
-                    1,
-                    0.5,
-                    0.25
-                ]
-            },
-            "Science": {
-                "values": [
-                    0,
-                    1
-                ],
-                "weights": [
-                    0.75,
-                    0.25
-                ]
-            }
+            "Food": "+2"
         }
     },
     {
@@ -87,38 +26,7 @@
         "key": "deepwater",
         "defenseModifier": 0,
         "resources": {
-            "Gold": {
-                "values": [
-                    1,
-                    2
-                ],
-                "weights": [
-                    1,
-                    0.75
-                ]
-            },
-            "Food": {
-                "values": [
-                    1,
-                    2,
-                    3
-                ],
-                "weights": [
-                    1,
-                    0.5,
-                    0.25
-                ]
-            },
-            "Science": {
-                "values": [
-                    0,
-                    1
-                ],
-                "weights": [
-                    0.75,
-                    0.25
-                ]
-            }
+            "Food": "+2"
         }
     },
     {
@@ -130,38 +38,7 @@
         ],
         "defenseModifier": 0.25,
         "resources": {
-            "Gold": {
-                "values": [
-                    1,
-                    2,
-                    3
-                ],
-                "weights": [
-                    1,
-                    0.5,
-                    0.25
-                ]
-            },
-            "Food": {
-                "values": [
-                    1,
-                    2
-                ],
-                "weights": [
-                    1,
-                    0.75
-                ]
-            },
-            "Science": {
-                "values": [
-                    0,
-                    1
-                ],
-                "weights": [
-                    0.5,
-                    0.5
-                ]
-            }
+            "Gold": "+1"
         }
     },
     {
@@ -169,38 +46,7 @@
         "key": "land3",
         "defenseModifier": 0.5,
         "resources": {
-            "Gold": {
-                "values": [
-                    1,
-                    2
-                ],
-                "weights": [
-                    1,
-                    0.75
-                ]
-            },
-            "Food": {
-                "values": [
-                    0,
-                    1
-                ],
-                "weights": [
-                    0.5,
-                    0.5
-                ]
-            },
-            "Science": {
-                "values": [
-                    1,
-                    2,
-                    3
-                ],
-                "weights": [
-                    0.75,
-                    1,
-                    1
-                ]
-            }
+            "Science": "+2"
         }
     },
     {
@@ -208,36 +54,7 @@
         "key": "toundra",
         "defenseModifier": 0,
         "resources": {
-            "Gold": {
-                "values": [
-                    1,
-                    2
-                ],
-                "weights": [
-                    1,
-                    0.75
-                ]
-            },
-            "Food": {
-                "values": [
-                    0,
-                    1
-                ],
-                "weights": [
-                    0.75,
-                    0.5
-                ]
-            },
-            "Science": {
-                "values": [
-                    2,
-                    3
-                ],
-                "weights": [
-                    0.5,
-                    1
-                ]
-            }
+            "Gold": "+1"
         }
     }
 ]
