@@ -33,7 +33,9 @@ module CIV {
             this.worldmap = config.worldmap;
             this._tribe = config.tribe;
 
+            this.tile.removeClickable(this.tile);
             this.tile.removeAssets();
+            this.tile.infos.defenseModifier = 0.25
 
             let cityImage = Game.INSTANCE.make.image({
                 x: 0,
@@ -204,7 +206,8 @@ module CIV {
                 position: this.worldposition,
                 constructions: listOfUnits
             });
-            console.log("CITY ACTIVATED");
+            // console.log("CITY ACTIVATED");
+            this.tile.displayTileInformation();
         }
 
         /**
@@ -225,12 +228,14 @@ module CIV {
         }
 
         deactivate() {
-            this.scene.events.emit(Constants.EVENTS.CIRCULAR_MENU_OFF);
+            // this.scene.events.emit(Constants.EVENTS.CIRCULAR_MENU_OFF);
+            this.scene.events.emit(Constants.EVENTS.UI_OFF);
             console.log("CITY DEACTIVATED");
         }
 
         destroy() {
             this.nameText.destroy();
+            this.tile.addClickable(this.tile);
             super.destroy();
         }
     }

@@ -14,6 +14,8 @@ module CIV {
         /** All units available in the game */
         allUnits: Hashmap<UnitInfo> = {};
 
+        turn: number = 0;
+
         public static INSTANCE: Game;
 
         constructor() {
@@ -151,6 +153,7 @@ module CIV {
          * - Increase the production of all cities 
          */
         nextTurn() {
+            this.turn++;
             // Deactivate all tiles
             this.map.doForAllTiles(t => t.deactivate());
 

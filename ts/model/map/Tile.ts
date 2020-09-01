@@ -12,10 +12,10 @@ module CIV {
     export type Vertex = { coords: Phaser.Types.Math.Vector2Like, neighbours: number[] };
     export type RQ = { r: number, q: number };
 
-    export class Tile extends Phaser.GameObjects.Image {
+    export class Tile extends Phaser.GameObjects.Image implements IClickable {
 
         static SELECTOR: Phaser.GameObjects.Image = null;
-        static SELECTED_TILE: Tile = null;
+        static TILE_SELECTED: Tile = null;
 
         infos: TileInfo;
 
@@ -63,6 +63,7 @@ module CIV {
             this.name = chance.guid();
             this._map = config.map;
             this.setInteractive();
+            this._onIt.push(this);
             this.on('pointerup', this.onPointerUp.bind(this));
         }
 
@@ -363,20 +364,60 @@ module CIV {
             // return img;
         }
 
+
+
+        activate() {
+            if (this.hasCity) {
+                // Nothing to do, because activating a city will display tile information
+                this.scene.events.emit(Constants.EVENTS.UI_OFF)
+            } else {
+                this.displayTileInformation();
+            }
+        }
+
+        getTexture(): string {
+            return this.texture.key;
+        }
+
         public onPointerUp() {
 
+            console.log("Tile selected!");
+
+            // Remove the tile selector
             if (Tile.SELECTOR) {
                 Tile.SELECTOR.destroy();
             }
-            if (Tile.SELECTED_TILE && Tile.SELECTED_TILE.name === this.name) {
-                this.scene.events.emit(Constants.EVENTS.UI_OFF);
-                Tile.SELECTED_TILE = null;
-                return;
-            }
+            // IF the player moves the camera, don't do anything
             if (CameraHelper.MOVING) {
                 return;
             }
-            Tile.SELECTED_TILE = this;
+            console.log(this.currentlyActivatedIndex)
+            if (!Tile.TILE_SELECTED) {
+
+            } else {
+                if (Tile.TILE_SELECTED.name !== this.name) {
+                    Tile.TILE_SELECTED.deactivate();
+                }
+            }
+            Tile.TILE_SELECTED = this;
+
+            // If we cycle around all stuff on this tile, reset all
+            if (this.currentlyActivatedIndex === this._onIt.length) {
+                this._onIt[this.currentlyActivatedIndex - 1].deactivate();
+                this.currentlyActivatedIndex = 0;
+                return;
+            }
+            // // Deactivate last activated stuff
+            if (this.currentlyActivatedIndex - 1 >= 0) {
+                this._onIt[this.currentlyActivatedIndex - 1].deactivate();
+            }
+            // Activate next stuff on this tile
+            let stuff = this._onIt[this.currentlyActivatedIndex];
+            this.currentlyActivatedIndex++;
+            stuff.activate();
+        }
+
+        displayTileInformation() {
 
             let selector = this.scene.add.image(this.worldPosition.x, this.worldPosition.y, 'selector');
             selector.scale = ratio;
@@ -387,9 +428,10 @@ module CIV {
 
             // Display bot panel
             let keys = [this.infos.key];
-            for (let onit of this._onIt) {
-                keys.push(onit.getTexture());
+            if (this.hasCity) {
+                keys.push(this.city.getTexture());
             }
+
             for (let ass of this.assets) {
                 keys.push(ass.texture.key);
             }
@@ -402,7 +444,7 @@ module CIV {
                     gold: this.resources[ResourceType.Gold],
                     science: this.resources[ResourceType.Science],
                 }
-            } as PanelConfig;
+            } as TilePanelConfig;
             if (this.bonusResource) {
                 panelConfig.bonus = {
                     name: this.bonusResource.name,
@@ -412,36 +454,17 @@ module CIV {
                     science: this.bonusResource.bonus.Science,
                 }
             }
-            this.scene.events.emit(Constants.EVENTS.BOT_PANEL_ON, panelConfig)
-
-            // Deactivate all other tiles
-            this._map.deactivateAllOtherTiles(this);
-
-
-            if (this._onIt.length === 0) {
-                // If there is no stuff on this tile, nothing to do
-                return;
-            }
-            // If we cycle around all stuff on this tile, reset all
-            if (this.currentlyActivatedIndex === this._onIt.length) {
-                this._onIt[this.currentlyActivatedIndex - 1].deactivate();
-                this.currentlyActivatedIndex = 0;
-                return;
-            }
-            // Deactivate last activated stuff
-            if (this.currentlyActivatedIndex - 1 >= 0) {
-                this._onIt[this.currentlyActivatedIndex - 1].deactivate();
-            }
-            // Activate next stuff on this tile
-            let stuff = this._onIt[this.currentlyActivatedIndex];
-            this.currentlyActivatedIndex++;
-            stuff.activate();
+            this.scene.events.emit(Constants.EVENTS.BOT_PANEL_TILE_ON, panelConfig)
         }
 
         public deactivate() {
-            for (let s of this._onIt) {
-                s.deactivate();
+            if (this.hasCity) {
+                this.city.deactivate();
             }
+            if (this.hasUnit) {
+                this.unit.deactivate();
+            }
+            this.scene.events.emit(Constants.EVENTS.UI_OFF);
             this.currentlyActivatedIndex = 0;
         }
 
@@ -450,7 +473,7 @@ module CIV {
          */
         public addClickable(c: IClickable) {
             this._onIt.unshift(c);
-            this.currentlyActivatedIndex = 0;
+            this.currentlyActivatedIndex++;
         }
 
         /**
@@ -492,7 +515,7 @@ module CIV {
         }
 
         public get isEmpty(): boolean {
-            return this._onIt.length === 0;
+            return !this.hasCity && !this.hasUnit;
         }
 
         /**

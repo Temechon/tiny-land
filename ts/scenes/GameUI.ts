@@ -1,10 +1,14 @@
 module CIV {
 
-    /** Configuration to display the bot panel */
-    export interface PanelConfig {
+    /** Base configuration to display the bot panel */
+    interface PanelConfig {
         title: string,
         key: string | string[],
         description: string
+    }
+
+    /** Configuration to display tile informations */
+    export interface TilePanelConfig extends PanelConfig {
         resources: {
             food?: number,
             science?: number,
@@ -19,6 +23,7 @@ module CIV {
         }
     }
 
+
     export class GameUI extends Phaser.Scene {
 
         private _gameScene: Game;
@@ -30,6 +35,8 @@ module CIV {
         private goldByTurn: Phaser.GameObjects.Text;
         private foodByTurn: Phaser.GameObjects.Text;
         private scienceByTurn: Phaser.GameObjects.Text;
+
+        private _turnText: Phaser.GameObjects.Text;
 
         constructor() {
             super({ key: 'gameui' });
@@ -43,7 +50,7 @@ module CIV {
             this._gameScene.events.on(Constants.EVENTS.UI_UPDATE, this.updateUI.bind(this))
 
             let hud = this.add.container();
-
+            let y = 60 * ratio;
 
             let titlestyle = {
                 fontSize: Helpers.font(35),
@@ -56,13 +63,27 @@ module CIV {
                 fontSize: Helpers.font(20),
                 fontFamily: Constants.FONT.NUMBERS,
                 color: "#fff",
-                stroke: '#000',
-                strokeThickness: 2 * ratio,
-            };
+            }
+
+            // * Number of turns
+            let labelTurn = this.make.text({
+                x: this.cameras.main.width / 2,
+                y: y,
+                text: "Turn",
+                style: style
+            }).setOrigin(0.5, 0.5)
+
+            this._turnText = this.make.text({
+                x: this.cameras.main.width / 2,
+                y: labelTurn.y + labelTurn.height + 20 * ratio,
+                text: "0",
+                style: titlestyle
+            }).setOrigin(0.5, 0.5)
+
 
             let gold = this.make.image({
                 x: 75 * ratio,
-                y: 75 * ratio,
+                y: y,
                 key: 'goldIcon',
                 scale: ratio
             });
@@ -145,14 +166,22 @@ module CIV {
             })
 
             let botPanel = null;
-            this._gameScene.events.on(Constants.EVENTS.BOT_PANEL_ON, (config: PanelConfig) => {
+            this._gameScene.events.on(Constants.EVENTS.BOT_PANEL_TILE_ON, (config: TilePanelConfig) => {
                 if (botPanel) {
                     this.removePanel(botPanel);
                     botPanel = null;
                 }
-                botPanel = this.displayPanel(config);
+                botPanel = this.displayTilePanel(config);
             })
-            this._gameScene.events.on(Constants.EVENTS.UI_OFF, (config: PanelConfig) => {
+            this._gameScene.events.on(Constants.EVENTS.BOT_PANEL_UNIT_ON, (config: UnitInfo) => {
+                if (botPanel) {
+                    this.removePanel(botPanel);
+                    botPanel = null;
+                }
+                botPanel = this.displayUnitPanel(config);
+            })
+
+            this._gameScene.events.on(Constants.EVENTS.UI_OFF, (config: TilePanelConfig) => {
                 if (botPanel) {
                     this.removePanel(botPanel);
                     botPanel = null;
@@ -237,244 +266,66 @@ module CIV {
             this.goldByTurn.text = "+" + this._gameScene.player.productionManager.goldByTurn.toString();
             this.foodByTurn.text = "+" + this._gameScene.player.productionManager.foodByTurn.toString();
             this.scienceByTurn.text = "+" + this._gameScene.player.productionManager.scienceByTurn.toString();
+
+            this._turnText.text = this._gameScene.turn.toString();
         }
+
+
+        displayUnitPanel(config: UnitInfo) {
+
+            let panelHeight = 220 * ratio;
+
+            let panel = new BotPanel({ scene: this, height: panelHeight, title: config.name });
+
+            //* Tile image
+            panel.addImage(config.key, ratio * 1.5);
+            panel.addUnitInfos(config);
+
+            this.add.tween({
+                targets: panel,
+                y: this.cameras.main.height - panelHeight,
+                duration: 300,
+                ease: Phaser.Math.Easing.Back.Out,
+            })
+            return panel;
+        }
+
 
         /**
          * Display a panel from the bottom of the scree displaying informations about a tile
          * (defence bonus, resource...)
          */
-        displayPanel(config: PanelConfig) {
+        displayTilePanel(config: TilePanelConfig) {
 
             let panelHeight = 220 * ratio;
 
             if (config.bonus) {
                 panelHeight += 50 * ratio;
             }
-            let x = 60 * ratio;
 
-            let panel = this.add.container(0, this.cameras.main.height);
-
-            let graphics = this.make.graphics({ x: 0, y: 0, add: false });
-            panel.add(graphics);
-            graphics.fillStyle(0x000000, 0.75);
-            graphics.fillRect(0, 0, this.cameras.main.width, panelHeight);
-
-            // * Tile name
-            let tileName = this.make.bitmapText({
-                x: x,
-                y: 25 * ratio,
-                font: "font_normal",
-                text: config.title,
-                size: 45 * ratio,
-                add: false
-            })
-            panel.add(tileName);
+            let panel = new BotPanel({ scene: this, height: panelHeight, title: config.title });
 
             // * Standard resources 
-            let xx = x;
-            let yy = tileName.y + tileName.height + 10 * ratio;
-
             if (config.resources.food) {
-                let foodNb = this.make.bitmapText({
-                    x: xx,
-                    y: yy,
-                    font: "font_normal",
-                    text: config.resources.food.toString(),
-                    size: 28 * ratio,
-                    add: false
-                })
-                let food = this.make.image({
-                    x: foodNb.x + foodNb.width + 10 * ratio,
-                    y: yy,
-                    scale: ratio,
-                    key: 'foodIcon',
-                    add: false
-                })
-                food.setOrigin(0, 0.1)
-                panel.add(foodNb);
-                panel.add(food);
-                xx = food.x + food.displayWidth + 20 * ratio;
+                panel.addResource(config.resources.food.toString(), 'foodIcon');
             }
-
             if (config.resources.gold) {
-                let goldNb = this.make.bitmapText({
-                    x: xx,
-                    y: yy,
-                    font: "font_normal",
-                    text: config.resources.gold.toString(),
-                    size: 28 * ratio,
-                    add: false
-                })
-                let gold = this.make.image({
-                    x: goldNb.x + goldNb.width + 10 * ratio,
-                    y: yy,
-                    scale: ratio,
-                    key: 'goldIcon',
-                    add: false
-                })
-                gold.setOrigin(0, 0.1)
-                panel.add(goldNb);
-                panel.add(gold);
-                xx = gold.x + gold.displayWidth + 20 * ratio;
+                panel.addResource(config.resources.gold.toString(), 'goldIcon');
             }
-
             if (config.resources.science) {
-                let scienceNb = this.make.bitmapText({
-                    x: xx,
-                    y: yy,
-                    font: "font_normal",
-                    text: config.resources.science.toString(),
-                    size: 28 * ratio,
-                    add: false
-                })
-                let science = this.make.image({
-                    x: scienceNb.x + scienceNb.width + 10 * ratio,
-                    y: yy,
-                    scale: ratio,
-                    key: 'scienceIcon',
-                    add: false
-                })
-                science.setOrigin(0)
-                panel.add(scienceNb);
-                panel.add(science);
+                panel.addResource(config.resources.science.toString(), 'scienceIcon');
             }
-
-            let style = {
-                fontSize: Helpers.font(28),
-                fontStyle: '',
-                fill: "#ffffff",
-                fontFamily: Constants.FONT.TEXT,
-                wordWrap: { width: this.cameras.main.width - 100 * ratio }
-            };
 
             // * Defense bonus
-            let desc = this.make.text({
-                x: x,
-                y: yy + 50 * ratio,
-                text: "Bonus defense: " + config.description,
-                style: style
-            })
-            panel.add(desc);
+            panel.addDefenseBonus("Bonus defense: " + config.description)
 
             //* Bonus resource
             if (config.bonus) {
-                let g = this.make.graphics({ x: 0, y: 180 * ratio, add: false });
-                g.fillStyle(0x000000);
-                g.fillRect(0, 0, this.cameras.main.width, 90 * ratio)
-                panel.add(g);
-
-                // Bonus name
-                let bonusName = this.make.text({
-                    x: x,
-                    y: 210 * ratio,
-                    text: "Bonus resource: " + config.bonus.name,
-                    style: style
-                })
-                panel.add(bonusName);
-
-                let xx = bonusName.x + bonusName.width + 30 * ratio;
-                if (config.bonus.food) {
-                    let foodNb = this.make.bitmapText({
-                        x: xx,
-                        y: bonusName.y,
-                        font: "font_normal",
-                        text: config.bonus.food.toString(),
-                        size: 28 * ratio,
-                        add: false
-                    })
-                    let food = this.make.image({
-                        x: foodNb.x + foodNb.width + 10 * ratio,
-                        y: bonusName.y,
-                        scale: ratio,
-                        key: 'foodIcon',
-                        add: false
-                    })
-                    food.setOrigin(0)
-                    panel.add(foodNb);
-                    panel.add(food);
-                    xx = food.x + food.displayWidth + 20 * ratio;
-                }
-
-                if (config.bonus.gold) {
-                    let goldNb = this.make.bitmapText({
-                        x: xx,
-                        y: bonusName.y,
-                        font: "font_normal",
-                        text: config.bonus.gold.toString(),
-                        size: 28 * ratio,
-                        add: false
-                    })
-                    let gold = this.make.image({
-                        x: goldNb.x + goldNb.width + 10 * ratio,
-                        y: bonusName.y,
-                        scale: ratio,
-                        key: 'goldIcon',
-                        add: false
-                    })
-                    gold.setOrigin(0)
-                    panel.add(goldNb);
-                    panel.add(gold);
-                    xx = gold.x + gold.displayWidth + 20 * ratio;
-                }
-
-                if (config.bonus.science) {
-                    let scienceNb = this.make.bitmapText({
-                        x: xx,
-                        y: bonusName.y,
-                        font: "font_normal",
-                        text: config.bonus.science.toString(),
-                        size: 28 * ratio,
-                        add: false
-                    })
-                    let science = this.make.image({
-                        x: scienceNb.x + scienceNb.width + 10 * ratio,
-                        y: bonusName.y,
-                        scale: ratio,
-                        key: 'scienceIcon',
-                        add: false
-                    })
-                    science.setOrigin(0)
-                    panel.add(scienceNb);
-                    panel.add(science);
-                    xx = science.x + science.displayWidth + 20 * ratio;
-                }
-
-                // Bonus description
-                style.fontSize = Helpers.font(25);
-                style.fontStyle = 'italic';
-                let bonusDesc = this.make.text({
-                    x: xx + 30 * ratio,
-                    y: bonusName.y,
-                    text: config.bonus.description,
-                    style: style,
-                    add: false
-                }).setOrigin(0, 0)
-                panel.add(bonusDesc);
+                panel.addBonusResource(config.bonus);
             }
 
-            // * Tile sprite
-            let keys: string[];
-            if (Array.isArray(config.key)) {
-                keys = config.key as string[];
-            } else {
-                keys = [config.key];
-            }
-
-            console.log("ici", keys);
-            for (let k of keys) {
-                let img = this.make.image({
-                    x: this.cameras.main.width,
-                    y: 0,
-                    key: k,
-                    scale: ratio,
-                    add: false
-                })
-                img.x -= img.displayWidth / 2 + 50 * ratio
-                img.y += img.displayHeight / 4
-                panel.add(img);
-            }
-
-
+            //* Tile image
+            panel.addImage(config.key);
 
             this.add.tween({
                 targets: panel,

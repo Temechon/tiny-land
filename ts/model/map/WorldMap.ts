@@ -350,13 +350,6 @@ module CIV {
         }
 
         /**
-         * Deactivate all tiles (before activating one generally)
-         */
-        public deactivateAllOtherTiles(tile: Tile) {
-            this.doForAllTiles(t => t.deactivate(), t => t.name !== tile.name);
-        }
-
-        /**
          * Return the list of neighbours of the given tile
          */
         getNeighbours(t: Tile): Array<Tile> {

@@ -7,7 +7,8 @@
         "strength": 3,
         "hpmax": 10,
         "cost": 5,
-        "vision": 3
+        "vision": 3,
+        "description": "A basic unit to kill others"
     },
     {
         "name": "Settler",
@@ -16,6 +17,8 @@
         "strength": 1,
         "hpmax": 10,
         "cost": 10,
-        "vision": 1
+        "vision": 1,
+        "movement": 1,
+        "description": "This unit can found a new city"
     }
 ]

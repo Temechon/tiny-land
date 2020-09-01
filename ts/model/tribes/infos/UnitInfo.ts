@@ -18,6 +18,8 @@ module CIV {
         cost: number;
         /** The strength of this unit in combat */
         strength: number;
+        /** a basic description of this unit */
+        description: string;
 
     }
 }

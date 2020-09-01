@@ -66,7 +66,8 @@ abstract class Constants {
         CIRCULAR_MENU_ON: "circularmenuon",
         CIRCULAR_MENU_OFF: "circularmenuoff",
         UI_UPDATE: "uiupdate",
-        BOT_PANEL_ON: "botpanelon",
+        BOT_PANEL_TILE_ON: "botpaneltileon",
+        BOT_PANEL_UNIT_ON: "botpaneluniton",
         UI_OFF: "uioff"
     }
 }

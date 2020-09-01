@@ -6,6 +6,8 @@ module CIV {
         ACTIVATED,
         /** This unit is moving */
         MOVING,
+        /** This unit can attack */
+        CAN_ATTACK,
         /** This unit is attacking */
         ATTACKING,
         /** This unit is waiting on the next turn to be able to move again */
@@ -105,6 +107,10 @@ module CIV {
         }
 
         deactivate() {
+
+            console.log("Deactivating unit");
+            this.scene.events.emit(Constants.EVENTS.UI_OFF);
+
             if (this._moveRangeGraphics) {
                 this._moveRangeGraphics.forEach(i => i.destroy());
                 this._moveRangeGraphics = null;
@@ -118,14 +124,25 @@ module CIV {
         }
 
         activate() {
+            console.log("Activating unit");
+
             // Check if the city belongs to the player
             if (!this._tribe.isPlayer) {
                 return;
             }
 
+            this.scene.events.emit(Constants.EVENTS.BOT_PANEL_UNIT_ON, this.infos);
+
             if (this.state === UnitState.WAITING_NEXT_TURN) {
                 // Only display something like stat, but can't move
-            } else if (this.canMove) {
+
+            } else if (this.state === UnitState.CAN_ATTACK) {
+                // Check if this unit can attack someone
+                this._displayAttack(this.canAttackOnTiles());
+            }
+
+
+            else if (this.canMove) {
                 this.state = UnitState.ACTIVATED;
 
                 // Check if this unit can attack someone
@@ -211,6 +228,19 @@ module CIV {
         }
 
         /**
+         * True if the given unit is in range and can be attacked by this unit
+         */
+        hasOtherInRange(other: Unit): boolean {
+            let canAttack = this.canAttackOnTiles();
+            for (let t of canAttack) {
+                if (t.hasUnit && t.unit === other) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /**
          * Move this unit to the given tile.
          */
         move(tile: Tile) {
@@ -228,6 +258,9 @@ module CIV {
             this.deactivate();
             // Remove this unit from the current tile
             this.currentTile.removeClickable(this);
+            this.currentTile.deactivate();
+            Tile.TILE_SELECTED = tile;
+
             // Add this unit to the given tile
             this.currentTile = tile;
             this.currentTile.addClickable(this);
@@ -280,7 +313,11 @@ module CIV {
                             ease: Phaser.Math.Easing.Expo.InOut
                         });
 
-                        // IF the enemy didn't die, it defends itself
+                        // IF the enemy didn't die and the attacker is in its range, it defends itself
+                        if (!enemy.hasOtherInRange(this)) {
+                            return
+                        }
+
                         Game.INSTANCE.add.tween({
                             targets: enemy,
                             delay: 150,
@@ -322,6 +359,7 @@ module CIV {
                     this.setWaitingNextTurn();
                     return;
                 }
+                this.state = UnitState.CAN_ATTACK;
                 this._displayAttack(attackTiles);
             } else {
                 // IA
