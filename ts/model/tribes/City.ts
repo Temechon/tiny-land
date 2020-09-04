@@ -23,6 +23,9 @@ module CIV {
         name: string;
         nameText: Phaser.GameObjects.BitmapText;
 
+        /** True if this city is being captured */
+        _isBeingCaptured: boolean = false;
+
         constructor(config: {
             worldmap: WorldMap,
             tile: Tile,
@@ -67,11 +70,34 @@ module CIV {
             // Draw its influence area
             this.updateInfluenceTiles();
             this.tile.addClickable(this);
-
         }
 
         get worldposition(): Phaser.Types.Math.Vector2Like {
             return { x: this.tile.worldPosition.x, y: this.tile.worldPosition.y }
+        }
+
+        get isBeingCaptured(): boolean {
+            return this._isBeingCaptured;
+        }
+        set isBeingCaptured(val: boolean) {
+            this._isBeingCaptured = val;
+
+            if (val) {
+                // TODO stop this when the city is captured
+                this.scene.tweens.addCounter({
+                    duration: 1000,
+                    ease: Phaser.Math.Easing.Cubic.Out,
+                    yoyo: true,
+                    repeat: -1,
+                    from: 0,
+                    to: 255,
+                    onUpdate: (tween) => {
+                        var value = Math.floor(tween.getValue());
+                        let color = Phaser.Display.Color.GetColor(255, (255 - value), (255 - value));
+                        this._image.setTint(color, color, 0xffffff, 0xffffff)
+                    }
+                })
+            }
         }
 
         /**
@@ -79,6 +105,11 @@ module CIV {
          */
         get hasUnit(): boolean {
             return this.tile.hasUnit;
+        }
+
+        /** Returns the tribe of this city */
+        get tribe(): Tribe {
+            return this._tribe;
         }
 
         getTexture(): string {
@@ -145,6 +176,15 @@ module CIV {
             }
 
             return res;
+        }
+
+        /**
+         * This city is given to the tribe passed in parameter
+         */
+        updateOwner(tribe: Tribe) {
+            this.tribe.removeCity(this);
+            this._tribe = tribe;
+            this._tribe.addCity(this);
         }
 
         updateInfluenceTiles() {

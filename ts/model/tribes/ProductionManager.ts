@@ -57,6 +57,10 @@ module CIV {
             this._cities.push(city);
         }
 
+        removeCity(city: City) {
+            this._cities = _.without(this._cities, city);
+        }
+
         /**
          * Add each city production to the global pool
          */

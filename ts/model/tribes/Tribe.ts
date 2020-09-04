@@ -55,13 +55,23 @@ module CIV {
             tile.resources[ResourceType.Gold]++
             tile.resources[ResourceType.Science] += 2;
 
-            this.productionManager.addCity(city);
-            this.productionManager.collectCity(city);
-
             // Make this city the capital if first one
             if (this.cities.length === 0) {
                 this.capital = city;
             }
+
+            this.addCity(city);
+
+            return city;
+        }
+
+        /**
+         * Add the given city in the empire
+         */
+        addCity(city: City) {
+            this.productionManager.addCity(city);
+            this.productionManager.collectCity(city);
+
 
             this.cities.push(city);
             this.add(city);
@@ -73,8 +83,19 @@ module CIV {
             this.updateFrontiers();
 
             this.scene.events.emit(Constants.EVENTS.UI_UPDATE);
+        }
 
-            return city;
+        /**
+         * Remove the given city from the tribe empire
+         */
+        removeCity(city: City) {
+            console.log('Number of cities', this.cities.length)
+            this.productionManager.removeCity(city);
+            this.cities = _.without(this.cities, city);
+            console.log('Number of cities after removing', this.cities.length)
+
+            this.updateFrontiers();
+            this.scene.events.emit(Constants.EVENTS.UI_UPDATE);
         }
 
         updateFrontiers() {
@@ -82,6 +103,11 @@ module CIV {
             if (this._influenceTexture) {
                 this._influenceTexture.destroy();
                 this.remove(this._influenceTexture);
+            }
+
+            // Nothing to do if there is no cities
+            if (this.cities.length === 0) {
+                return;
             }
 
             this.cities.forEach(c => c.updateInfluenceTiles());

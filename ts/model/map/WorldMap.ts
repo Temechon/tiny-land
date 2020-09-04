@@ -19,12 +19,26 @@ module CIV {
         /** All rivers on this map */
         private _rivers: River[] = [];
 
-        constructor(scene: Phaser.Scene) {
+        /** The number of tiles from the center to the left edge of the map */
+        radius: number;
+
+        allAssets: Phaser.GameObjects.Container;
+
+        selectionActive: boolean;
+
+
+        constructor(scene: Phaser.Scene, radius: number, selectionActive: boolean = true) {
             super(scene);
+            this.radius = radius;
+            this.selectionActive = selectionActive;
 
             this.scene.add.existing(this);
             this.x = (this.scene.game.config.width as number) / 2;
             this.y = (this.scene.game.config.height as number) / 2;
+
+            this.allAssets = this.scene.make.container({ x: this.x, y: this.y, add: true });
+            // this.add(this.allTrees);
+            this.allAssets.depth = Constants.LAYER.TREES_AND_RESOURCES
 
         }
 
@@ -40,11 +54,11 @@ module CIV {
                 allTilesType[t.type] = t as TileInfo;
             }
 
-            let mapCoords = this._grid.hexagon(0, 0, Constants.MAP.SIZE, true);
+            let mapCoords = this._grid.hexagon(0, 0, this.radius, true);
             this.nbTiles = mapCoords.length;
             this.depth = Constants.LAYER.MAP.ROOT;
 
-            console.log("MAP - Radius : ", Constants.MAP.SIZE);
+            console.log("MAP - Radius : ", this.radius);
             console.log("MAP - Nb tiles : ", this.nbTiles);
 
             let noiseGen = new FastSimplexNoise(Constants.MAP.WATER.NOISE);
@@ -103,12 +117,12 @@ module CIV {
             }
 
             // Arctic on north and south of the map (r = +-MAP.SIZE)
-            let nbLineTop = Math.floor(Constants.MAP.SIZE * 3 / 15);
+            let nbLineTop = Math.floor(this.radius * 3 / 15);
             let probamin = 1 / nbLineTop;
 
             for (let i = 0; i <= nbLineTop; i++) {
-                let allTop = this.getAllTiles(t => t.rq.r === Constants.MAP.SIZE - i);
-                allTop.push(...this.getAllTiles(t => t.rq.r === -Constants.MAP.SIZE + i));
+                let allTop = this.getAllTiles(t => t.rq.r === this.radius - i);
+                allTop.push(...this.getAllTiles(t => t.rq.r === -this.radius + i));
                 for (let t of allTop) {
                     if (chance.floating({ min: 0, max: 1 }) < (1 - probamin * i)) {
                         t.setTint(0xffffff)
@@ -127,10 +141,11 @@ module CIV {
 
                     for (let ln of landNeighbours) {
                         let dir = t.getNeighbouringDirection(ln);
-                        let coast = this.scene.add.image(t.worldPosition.x, t.worldPosition.y, "coast")
+                        let coast = this.scene.add.image(t.x, t.y, "coast")
                         coast.depth = 4;
                         coast.angle = dir * 60;
                         coast.scale = ratio;
+                        this.allAssets.add(coast);
                         t.assets.push(coast);
                     }
                 }
@@ -144,11 +159,11 @@ module CIV {
                 console.log("MAP -", nbRivers, "rivers");
                 let starts = this.getEvenlyLocatedTiles(
                     nbRivers,
-                    Constants.MAP.SIZE / 2,
-                    this.isRiverStartingLocationCorrect.bind(this, Constants.MAP.SIZE / 4)
+                    this.radius / 2,
+                    this.isRiverStartingLocationCorrect.bind(this, this.radius / 4)
                 )
 
-                let riversGraphics = Game.INSTANCE.make.graphics({ x: 0, y: 0, add: false });
+                let riversGraphics = this.scene.make.graphics({ x: 0, y: 0, add: false });
                 riversGraphics.depth = Constants.LAYER.MAP.RIVER;
 
                 for (let s of starts) {
@@ -160,6 +175,7 @@ module CIV {
                     this._rivers.push(river);
                     for (let t of river.tiles) {
                         t.hasRiver = true;
+                        t.resources[ResourceType.Food]++;
                     }
                 }
                 this.add(riversGraphics);
@@ -174,20 +190,21 @@ module CIV {
                 let trees = ['tree', 'tree2'];
                 let mountain = ['mountain', 'mountain2'];
                 if (t.tileType === TileType.Forest) {
-                    img = Game.INSTANCE.add.image(t.worldPosition.x, t.worldPosition.y, chance.pickone(trees));
+                    img = this.scene.add.image(t.x, t.y, chance.pickone(trees));
                     img.setOrigin(0.5, 0.65)
                 }
                 if (t.tileType === TileType.Mountain) {
-                    img = Game.INSTANCE.add.image(t.worldPosition.x, t.worldPosition.y, chance.pickone(mountain));
+                    img = this.scene.add.image(t.x, t.y, chance.pickone(mountain));
                 }
 
                 t.assets.push(img);
                 img.scale = ratio;
                 img.depth = Constants.LAYER.TREES_AND_RESOURCES;
-                // this.add(tree);
+                this.allAssets.add(img)
+                // this.add(img);
 
             }, t => t.tileType === TileType.Forest || t.tileType === TileType.Mountain)
-
+            this.bringToTop(this.allAssets)
 
             // Special resources
             let resources = this.scene.cache.json.get('resources');
@@ -200,13 +217,14 @@ module CIV {
 
                 let res = r as ResourceInfo;
 
-                let tiles = this.getEvenlyLocatedTiles(numberOfResources, Constants.MAP.SIZE * 2, t => res.canBeFoundOn.indexOf(t.tileType) !== -1);
+                let tiles = this.getEvenlyLocatedTiles(numberOfResources, this.radius * 2, t => res.canBeFoundOn.indexOf(t.tileType) !== -1);
                 for (let t of tiles) {
 
-                    let img = Game.INSTANCE.add.image(t.worldPosition.x, t.worldPosition.y, res.key);
+                    let img = this.scene.add.image(t.x, t.y, res.key);
                     t.assets.push(img);
                     img.scale = ratio;
                     img.depth = Constants.LAYER.TREES_AND_RESOURCES;
+                    this.allAssets.add(img)
 
                     // Add ressources on this tile
                     t.bonusResource = res;
@@ -394,13 +412,13 @@ module CIV {
          * Return a tile by its given axial coordinates. Uselful when ahg lib gives only coordinates
          */
         public getTileByAxialCoords(q: number, r: number): Tile | null {
-            if (q < -Constants.MAP.SIZE || q > Constants.MAP.SIZE) {
+            if (q < -this.radius || q > this.radius) {
                 return null;
             }
-            if (r < -Constants.MAP.SIZE || r > Constants.MAP.SIZE) {
+            if (r < -this.radius || r > this.radius) {
                 return null;
             }
-            return this._tiles[r + Constants.MAP.SIZE][q + Constants.MAP.SIZE] || null;
+            return this._tiles[r + this.radius][q + this.radius] || null;
         }
 
         /**
@@ -576,6 +594,7 @@ module CIV {
             if (this.resourceLayer) {
                 this.resourceLayer.destroy();
             }
+            this.allAssets.destroy();
 
             super.destroy();
         }

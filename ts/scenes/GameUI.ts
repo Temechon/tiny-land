@@ -193,27 +193,27 @@ module CIV {
             })
 
             // BUTTONS
-            // let showResourceButton = new Button(this, {
-            //     w: 250 * ratio,
-            //     h: 80 * ratio,
-            //     backgroundColor: 0x1c4c68,
-            //     shadowColor: 0x07141c,
-            //     label: "Resources ON",
-            //     fontSize: 25,
-            //     fontFamily: Constants.FONT.TEXT,
-            //     fontColor: 'white',
-            //     x: 200 * ratio,
-            //     y: this.cameras.main.height - 100 * ratio
-            // })
-            // showResourceButton.onInputDown = () => {
-            //     this._gameScene.map.resourceLayer.visible = !this._gameScene.map.resourceLayer.visible;
-            //     if (this._gameScene.map.resourceLayer.visible) {
-            //         showResourceButton.label = "Resources ON"
-            //     } else {
-            //         showResourceButton.label = "Resources OFF"
-            //     }
-            // }
-            // hud.add(showResourceButton);
+            let showResourceButton = new Button(this, {
+                w: 250 * ratio,
+                h: 80 * ratio,
+                backgroundColor: 0x1c4c68,
+                shadowColor: 0x07141c,
+                label: "Resources ON",
+                fontSize: 25,
+                fontFamily: Constants.FONT.TEXT,
+                fontColor: 'white',
+                x: 200 * ratio,
+                y: this.cameras.main.height - 100 * ratio
+            })
+            showResourceButton.onInputDown = () => {
+                this._gameScene.map.resourceLayer.visible = !this._gameScene.map.resourceLayer.visible;
+                if (this._gameScene.map.resourceLayer.visible) {
+                    showResourceButton.label = "Resources ON"
+                } else {
+                    showResourceButton.label = "Resources OFF"
+                }
+            }
+            hud.add(showResourceButton);
             // END TURN
             let endTurnButton = new Button(this, {
                 w: 250 * ratio,

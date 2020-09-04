@@ -96,8 +96,8 @@ module CIV {
 
         getStorageXY(): { x: number, y: number } {
             return {
-                x: this.rq.r + Constants.MAP.SIZE,
-                y: this.rq.q + Constants.MAP.SIZE
+                x: this.rq.r + this._map.radius,
+                y: this.rq.q + this._map.radius
             }
         }
 
@@ -247,12 +247,9 @@ module CIV {
             }
         }
 
-        /**
-         * TODO replace the number sprites by a bitmap font
-         */
         _drawResource(type: ResourceType, nb: number, p: Phaser.Types.Math.Vector2Like, rootContainer: Phaser.GameObjects.Container) {
             let container = Game.INSTANCE.make.container({ x: 0, y: 0, add: false });
-            let keys = ['gold', 'food', 'research'];
+            let keys = ['goldIcon', 'foodIcon', 'scienceIcon'];
             let s = Game.INSTANCE.make.image({ x: p.x, y: p.y, key: keys[type], scale: ratio, add: false });
             container.add(s);
 
@@ -380,6 +377,10 @@ module CIV {
         }
 
         public onPointerUp() {
+
+            if (!this._map.selectionActive) {
+                return;
+            }
 
             console.log("Tile selected!");
 

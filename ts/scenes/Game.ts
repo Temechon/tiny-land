@@ -38,12 +38,11 @@ module CIV {
 
             let ch = new CameraHelper(this);
 
-            this.map = new WorldMap(this);
+            this.map = new WorldMap(this, Constants.MAP.SIZE);
             this.map.create();
 
             // Display UI
             this.scene.run('loading');
-            this.scene.run('selectmapui');
 
             this.input.keyboard.on('keyup-' + 'W', () => {
                 console.log("CAMERA - Zoom:", this.cameras.main.zoom);
@@ -132,7 +131,7 @@ module CIV {
             this.tribes = [];
             this.map.destroy();
             Constants.MAP.SIZE = 8//chance.integer({ min: 5, max: 20 });
-            this.map = new WorldMap(this);
+            this.map = new WorldMap(this, Constants.MAP.SIZE);
             this.map.create();
 
             // Set the camera to an apropriate zoom
@@ -157,7 +156,18 @@ module CIV {
             // Deactivate all tiles
             this.map.doForAllTiles(t => t.deactivate());
 
+
             for (let tribe of this.tribes) {
+
+                // Capture all cities that were being captured
+                for (let city of tribe.cities) {
+                    if (city.isBeingCaptured) {
+                        // Pass this city to the tribe that is being capturing this city
+                        let newOwner = city.tile.unit.tribe;
+                        city.updateOwner(newOwner);
+                    }
+                }
+
                 tribe.resetAllUnits();
 
                 // Add ressources

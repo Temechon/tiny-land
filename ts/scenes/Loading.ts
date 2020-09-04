@@ -1,7 +1,7 @@
 module CIV {
     export class Loading extends Phaser.Scene {
 
-        container;
+        container: Phaser.GameObjects.Container;
 
         constructor() {
             super({ key: 'loading' });
@@ -18,11 +18,13 @@ module CIV {
             let hh = this.cameras.main.height / 2
 
             let style = {
-                fontSize: Helpers.font(100),
+                fontSize: Helpers.font(80),
                 fill: "#fff",
-                fontFamily: Constants.FONT.TEXT
+                fontFamily: Constants.FONT.TEXT,
+                wordWrap: { width: this.cameras.main.width - 100 * ratio },
+                align: 'center'
             }
-            let text = this.add.text(hw, hh, "LOADING...", style)
+            let text = this.add.text(hw, hh, "GENERATING WORLD...", style)
             text.setOrigin(0.5)
             this.container.add(graphics);
             this.container.add(text);

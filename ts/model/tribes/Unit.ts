@@ -86,6 +86,10 @@ module CIV {
             return this._image.texture.key;
         }
 
+        get tribe(): Tribe {
+            return this._tribe;
+        }
+
         /**
          * True if this unit can move
          */
@@ -268,6 +272,26 @@ module CIV {
             // Update fog of war
             let vision = this.getVision();
             this._tribe.removeFogOfWar(vision);
+
+            // Check if the unit is on a city
+            if (this.currentTile.hasCity) {
+                let city = this.currentTile.city;
+                if (city.tribe !== this._tribe) {
+                    city.isBeingCaptured = true;
+                }
+
+                if (this._tribe.isPlayer) {
+                    let t = new Toast({
+                        scene: this.scene.scene.get("gameui"),
+                        message: "This city will be captured next turn!",
+                        style: {
+                            fontColor: "#ffffff",
+                            backgroundColor: 0x5C69AD
+                        }
+                    });
+                }
+
+            }
         }
 
         /**
@@ -376,6 +400,15 @@ module CIV {
         die() {
             // Deactivate this unit
             this.deactivate();
+
+            // Was this unit on an enemy city ? IF so, remove the 'is being captured'
+            if (this.currentTile.hasCity) {
+                let city = this.currentTile.city;
+                if (city.tribe !== this._tribe) {
+                    city.isBeingCaptured = false;
+                }
+            }
+
             // Remove this unit from the current tile
             this.currentTile.removeClickable(this);
             // Remove this unit from its tribe
