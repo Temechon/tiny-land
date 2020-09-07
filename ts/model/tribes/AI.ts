@@ -31,7 +31,35 @@ module CIV {
                     // IF the unit can move
                     if (moverange.length !== 0) {
                         let nextTile = this._chooseTile(unit, moverange);
-                        unit.move(nextTile);
+
+                        // iF the current unit can be seen by the player, move it slowly. 
+                        if (Game.INSTANCE.player.isInFogOfWar(unit.currentTile)) {
+                            // Otherwise, just move it without animations
+                            unit.move(nextTile);
+
+                        } else {
+                            // Game.INSTANCE.aiEvents.push(() => {   
+                            // Animate main camera to the unit position if this unit is not one of the player
+                            // this.scene.cameras.main.centerOn(unit.currentTile.worldPosition.x, unit.currentTile.worldPosition.y);
+
+                            // });
+                            Game.INSTANCE.aiEvents.push(() => {
+                                return Game.INSTANCE.ch.animateTo(unit.currentTile.worldPosition)
+                            });
+                            // Tempo between two moves
+                            Game.INSTANCE.aiEvents.push(() => {
+                                return new Promise(resolve => setTimeout(resolve, 100));
+                            });
+
+                            Game.INSTANCE.aiEvents.push(() => {
+                                return unit.move(nextTile);
+                            });
+                            // Tempo between two moves
+                            Game.INSTANCE.aiEvents.push(() => {
+                                return new Promise(resolve => setTimeout(resolve, 500));
+                            });
+                        }
+
                     }
                 }
             }

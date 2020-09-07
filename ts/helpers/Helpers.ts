@@ -173,12 +173,12 @@ module CIV {
          * Executes the given set of promise one after the other.
          * @param list An array of promise functions to be chained
          */
-        // public static pseries(list) {
-        //     var p = Promise.resolve();
-        //     return list.reduce(function (pacc, fn) {
-        //         return pacc = pacc.then(fn);
-        //     }, p);
-        // }
+        public static pseries(list: Array<any>) {
+            var p = Promise.resolve();
+            return list.reduce(function (pacc, fn) {
+                return pacc = pacc.then(fn);
+            }, p);
+        }
 
     }
 }

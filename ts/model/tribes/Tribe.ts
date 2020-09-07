@@ -5,7 +5,7 @@ module CIV {
      */
     export class Tribe extends Phaser.GameObjects.Container {
 
-        static DEBUG_FOG_OF_WAR_ON = false;
+        static DEBUG_FOG_OF_WAR_ON = true;
 
         public cities: City[] = [];
         public units: Unit[] = [];
@@ -27,6 +27,9 @@ module CIV {
 
         /** The tetxure used to display the influence */
         private _influenceTexture: Phaser.GameObjects.Graphics;
+
+        /** Has this tribe been exterminated ? */
+        exterminated: boolean = false;
 
         constructor(public name: string) {
             super(Game.INSTANCE);

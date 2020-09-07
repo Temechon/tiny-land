@@ -247,51 +247,28 @@ module CIV {
         /**
          * Move this unit to the given tile.
          */
-        move(tile: Tile) {
-            this.state = UnitState.MOVING;
+        move(tile: Tile): Promise<any> {
 
-            Game.INSTANCE.add.tween({
-                targets: this,
-                x: tile.worldPosition.x,
-                y: tile.worldPosition.y,
-                duration: 50,
-                onComplete: this.afterMove.bind(this)
-            })
+            this.state = UnitState.MOVING;
 
             // Deactivate this unit
             this.deactivate();
-            // Remove this unit from the current tile
-            this.currentTile.removeClickable(this);
-            this.currentTile.deactivate();
-            Tile.TILE_SELECTED = tile;
 
-            // Add this unit to the given tile
-            this.currentTile = tile;
-            this.currentTile.addClickable(this);
+            return new Promise(resolve => {
 
-            // Update fog of war
-            let vision = this.getVision();
-            this._tribe.removeFogOfWar(vision);
+                this.scene.add.tween({
+                    targets: this,
+                    x: tile.worldPosition.x,
+                    y: tile.worldPosition.y,
+                    duration: 50,
+                    onComplete: () => {
+                        this.afterMove(tile);
+                        resolve();
+                    }
+                })
+            });
 
-            // Check if the unit is on a city
-            if (this.currentTile.hasCity) {
-                let city = this.currentTile.city;
-                if (city.tribe !== this._tribe) {
-                    city.isBeingCaptured = true;
-                }
 
-                if (this._tribe.isPlayer) {
-                    let t = new Toast({
-                        scene: this.scene.scene.get("gameui"),
-                        message: "This city will be captured next turn!",
-                        style: {
-                            fontColor: "#ffffff",
-                            backgroundColor: 0x5C69AD
-                        }
-                    });
-                }
-
-            }
         }
 
         /**
@@ -374,8 +351,42 @@ module CIV {
 
         /**
          * After movement, we check if this unit can attack another one. If so, engage attack mode
+         * The parameter is the tile the unit is on
          */
-        afterMove() {
+        afterMove(tile: Tile) {
+            // Remove this unit from the current tile
+            this.currentTile.removeClickable(this);
+            this.currentTile.deactivate();
+            Tile.TILE_SELECTED = tile;
+
+            // Add this unit to the given tile
+            this.currentTile = tile;
+            this.currentTile.addClickable(this);
+
+            // Update fog of war
+            let vision = this.getVision();
+            this._tribe.removeFogOfWar(vision);
+
+            // Check if the unit is on a city
+            if (this.currentTile.hasCity) {
+                let city = this.currentTile.city;
+                if (city.tribe !== this._tribe) {
+                    city.isBeingCaptured = true;
+                }
+
+                if (this._tribe.isPlayer) {
+                    let t = new Toast({
+                        scene: this.scene.scene.get("gameui"),
+                        message: "This city will be captured next turn!",
+                        style: {
+                            fontColor: "#ffffff",
+                            backgroundColor: 0x5C69AD
+                        }
+                    });
+                }
+
+            }
+
             if (this._tribe.isPlayer) {
                 let attackTiles = this.canAttackOnTiles();
 

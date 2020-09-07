@@ -14,6 +14,9 @@ module CIV {
         }
 
         preload() {
+            // Fog of war
+            this.load.image('hex', 'assets/hex.png');
+
             this.load.image('toundra', 'assets/hex_toundra.png');
             this.load.image('land', 'assets/hex_land.png');
             this.load.image('land2', 'assets/hex_land2.png');

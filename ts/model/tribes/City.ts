@@ -24,7 +24,7 @@ module CIV {
         nameText: Phaser.GameObjects.BitmapText;
 
         /** True if this city is being captured */
-        _isBeingCaptured: boolean = false;
+        private _isBeingCaptured: { value: boolean, tween: Phaser.Tweens.Tween } = { value: false, tween: null };
 
         constructor(config: {
             worldmap: WorldMap,
@@ -77,14 +77,13 @@ module CIV {
         }
 
         get isBeingCaptured(): boolean {
-            return this._isBeingCaptured;
+            return this._isBeingCaptured.value;
         }
         set isBeingCaptured(val: boolean) {
-            this._isBeingCaptured = val;
+            this._isBeingCaptured.value = val;
 
             if (val) {
-                // TODO stop this when the city is captured
-                this.scene.tweens.addCounter({
+                this._isBeingCaptured.tween = this.scene.tweens.addCounter({
                     duration: 1000,
                     ease: Phaser.Math.Easing.Cubic.Out,
                     yoyo: true,
@@ -96,7 +95,10 @@ module CIV {
                         let color = Phaser.Display.Color.GetColor(255, (255 - value), (255 - value));
                         this._image.setTint(color, color, 0xffffff, 0xffffff)
                     }
-                })
+                });
+            } else {
+                this._image.setTint(0xffffff, 0xffffff, 0xffffff, 0xffffff)
+                this._isBeingCaptured.tween.stop();
             }
         }
 
@@ -138,6 +140,7 @@ module CIV {
 
                 this._tribe.units.push(unit);
                 this.scene.events.emit(Constants.EVENTS.UI_UPDATE);
+                this.scene.events.emit(Constants.EVENTS.UI_OFF);
             }
         }
 

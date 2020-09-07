@@ -18,6 +18,11 @@ module CIV {
 
         public static INSTANCE: Game;
 
+        ch: CameraHelper;
+
+        /** All AI events to play (mostly unit movements) before the player can play */
+        aiEvents: Array<() => Promise<any>> = [];
+
         constructor() {
             super('game');
             Game.INSTANCE = this;
@@ -36,7 +41,7 @@ module CIV {
             // graphics.fillRectShape(bounds);
             // graphics.setScrollFactor(0, 0)
 
-            let ch = new CameraHelper(this);
+            this.ch = new CameraHelper(this);
 
             this.map = new WorldMap(this, Constants.MAP.SIZE);
             this.map.create();
@@ -119,6 +124,34 @@ module CIV {
             }, 150)
 
 
+            // let p = () => {
+            //     return new Promise(resolve => {
+            //         console.log('coucou');
+            //         resolve();
+            //     });
+            // };
+            // let p2 = () => {
+            //     return new Promise(resolve => {
+            //         setTimeout(() => {
+            //             console.log('coucou2');
+            //             resolve();
+            //         }, 2000)
+            //     });
+            // };
+            // let p3 = () => {
+            //     return new Promise(resolve => {
+            //         setTimeout(() => {
+            //             console.log('coucou3');
+            //             resolve();
+            //         }, 1000)
+            //     });
+            // }
+
+            // Helpers.pseries([p, p2, p3]).then(() => {
+            //     console.log('coucou4');
+
+            // })
+            // p2().then(() => p())
 
             // this.cameras.main.centerOn(tiles[0].worldPosition.x, tiles[0].worldPosition.y)
 
@@ -162,10 +195,22 @@ module CIV {
                 // Capture all cities that were being captured
                 for (let city of tribe.cities) {
                     if (city.isBeingCaptured) {
+                        city.isBeingCaptured = false;
                         // Pass this city to the tribe that is being capturing this city
                         let newOwner = city.tile.unit.tribe;
                         city.updateOwner(newOwner);
                     }
+                }
+
+                if (tribe.cities.length === 0) {
+                    new Toast({
+                        scene: this.scene.get("gameui"),
+                        message: "Tribe " + tribe.name + " has been exterminated!",
+                        style: Toast.STYLE.WARNING
+                    });
+                    // Set this tribe has "exterminated"
+                    tribe.exterminated = true;
+                    continue;
                 }
 
                 tribe.resetAllUnits();
@@ -177,6 +222,10 @@ module CIV {
                     let ai = tribe as AI;
                     ai.play();
                 }
+                // Move units one by one
+                Helpers.pseries(this.aiEvents).then(() => {
+                    this.aiEvents = [];
+                })
                 // TODO Finish here
             }
 

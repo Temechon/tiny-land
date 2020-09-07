@@ -181,5 +181,21 @@ module CIV {
                 p1 = this.pointers[1];
             return Phaser.Math.Distance.Between(p0.x, p0.y, p1.x, p1.y);
         }
+
+        animateTo(pos: Phaser.Types.Math.Vector2Like): Promise<any> {
+            return new Promise(resolve => {
+
+                var originX = this.scene.cameras.main.width / 2;
+                var originY = this.scene.cameras.main.height / 2;
+                this.scene.add.tween({
+                    targets: this.scene.cameras.main,
+                    duration: 250,
+                    ease: Phaser.Math.Easing.Circular.Out,
+                    scrollX: pos.x - originX,
+                    scrollY: pos.y - originY,
+                    onComplete: resolve
+                })
+            })
+        }
     }
 }
