@@ -220,7 +220,7 @@ module CIV {
             let endTurnButton = new Button(this, {
                 w: 250 * ratio,
                 h: 80 * ratio,
-                backgroundColor: 0x1c4c68,
+                backgroundColor: 0x5C69AD,
                 shadowColor: 0x07141c,
                 label: "Next turn",
                 fontSize: 25,

@@ -381,8 +381,12 @@ module CIV {
             if (!this._map.selectionActive) {
                 return;
             }
+            // IF the player cannot play, nothing to do
+            if (!Game.CAN_PLAY) {
+                return;
+            }
 
-            console.log("Tile selected!");
+            console.log("Can play ?", Game.CAN_PLAY);
 
             // Remove the tile selector
             if (Tile.SELECTOR) {
@@ -392,7 +396,7 @@ module CIV {
             if (CameraHelper.MOVING) {
                 return;
             }
-            console.log(this.currentlyActivatedIndex)
+            // console.log(this.currentlyActivatedIndex)
             if (!Tile.TILE_SELECTED) {
 
             } else {

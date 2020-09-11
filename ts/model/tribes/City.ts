@@ -273,7 +273,7 @@ module CIV {
         deactivate() {
             // this.scene.events.emit(Constants.EVENTS.CIRCULAR_MENU_OFF);
             this.scene.events.emit(Constants.EVENTS.UI_OFF);
-            console.log("CITY DEACTIVATED");
+            // console.log("CITY DEACTIVATED");
         }
 
         destroy() {

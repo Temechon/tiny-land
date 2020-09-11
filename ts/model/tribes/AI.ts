@@ -44,7 +44,7 @@ module CIV {
 
                             // });
                             Game.INSTANCE.aiEvents.push(() => {
-                                return Game.INSTANCE.ch.animateTo(unit.currentTile.worldPosition)
+                                return CameraHelper.animateTo(this.scene.cameras.main, unit.currentTile.worldPosition)
                             });
                             // Tempo between two moves
                             Game.INSTANCE.aiEvents.push(() => {

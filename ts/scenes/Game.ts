@@ -6,22 +6,22 @@ module CIV {
 
     export class Game extends Phaser.Scene {
 
+        static INSTANCE: Game;
+        /** If false, the player cannot do any actions */
+        static CAN_PLAY = true;
+
         public player: Tribe;
+        /** The worlmap */
         map: WorldMap;
         /** All tribes playing on this map */
         tribes: Array<Tribe> = [];
-
-        /** All units available in the game */
+        /** All units infos available in the game. Used by a tribe to create units (after filter) */
         allUnits: Hashmap<UnitInfo> = {};
-
+        /** The current turn */
         turn: number = 0;
-
-        public static INSTANCE: Game;
-
-        ch: CameraHelper;
-
-        /** All AI events to play (mostly unit movements) before the player can play */
+        /** All AI events to play (mostly unit movements) before the player can play. This array is reset at each turn */
         aiEvents: Array<() => Promise<any>> = [];
+
 
         constructor() {
             super('game');
@@ -41,7 +41,7 @@ module CIV {
             // graphics.fillRectShape(bounds);
             // graphics.setScrollFactor(0, 0)
 
-            this.ch = new CameraHelper(this);
+            let ch = new CameraHelper(this);
 
             this.map = new WorldMap(this, Constants.MAP.SIZE);
             this.map.create();
@@ -123,37 +123,11 @@ module CIV {
                 })
             }, 150)
 
-
-            // let p = () => {
-            //     return new Promise(resolve => {
-            //         console.log('coucou');
-            //         resolve();
-            //     });
-            // };
-            // let p2 = () => {
-            //     return new Promise(resolve => {
-            //         setTimeout(() => {
-            //             console.log('coucou2');
-            //             resolve();
-            //         }, 2000)
-            //     });
-            // };
-            // let p3 = () => {
-            //     return new Promise(resolve => {
-            //         setTimeout(() => {
-            //             console.log('coucou3');
-            //             resolve();
-            //         }, 1000)
-            //     });
-            // }
-
-            // Helpers.pseries([p, p2, p3]).then(() => {
-            //     console.log('coucou4');
-
-            // })
-            // p2().then(() => p())
-
-            // this.cameras.main.centerOn(tiles[0].worldPosition.x, tiles[0].worldPosition.y)
+            // Popin
+            let mary = new Popin({
+                scene: this.scene.get("gameui"),
+                message: "The tribe has been exterminated!"
+            })
 
         }
 
@@ -185,6 +159,8 @@ module CIV {
          * - Increase the production of all cities 
          */
         nextTurn() {
+            Game.CAN_PLAY = false;
+            console.log("can play -> false");
             this.turn++;
             // Deactivate all tiles
             this.map.doForAllTiles(t => t.deactivate());
@@ -222,12 +198,15 @@ module CIV {
                     let ai = tribe as AI;
                     ai.play();
                 }
-                // Move units one by one
-                Helpers.pseries(this.aiEvents).then(() => {
-                    this.aiEvents = [];
-                })
                 // TODO Finish here
             }
+            // Move units one by one
+            Helpers.pseries(this.aiEvents).then(() => {
+                this.aiEvents = [];
+                console.log("can play -> true");
+
+                Game.CAN_PLAY = true;
+            })
 
             this.events.emit(Constants.EVENTS.UI_UPDATE)
         }

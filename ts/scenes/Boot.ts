@@ -45,6 +45,7 @@ module CIV {
             this.load.image('foodIcon', 'assets/hud/food.png');
             this.load.image('goldIcon', 'assets/hud/gold.png');
             this.load.image('scienceIcon', 'assets/hud/research.png');
+            this.load.image('skull', 'assets/hud/skull.png');
 
             // Special resources
             this.load.image('wheat', 'assets/resources/wheat.png');
