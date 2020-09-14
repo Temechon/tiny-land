@@ -7,6 +7,8 @@ module CIV {
         private _top: Phaser.GameObjects.Graphics;
         private _background: Phaser.GameObjects.Graphics;
 
+        isFlat: boolean = false;
+
         private _offset: number;
 
         private _isCliked = false;
@@ -19,22 +21,30 @@ module CIV {
                 w: number,
                 h: number,
                 backgroundColor: number,
-                shadowColor?: number,
+                activeBackgroundColor: number, // Background color when the button is clicked
                 label: string,
-                fontSize: number,
                 fontFamily: string,
                 fontColor: string,
                 x: number,
                 y: number,
-                iconKey?: string
+                fontSize?: number, // If not specified, the font size will be set according to the button height
+                shadowColor?: number, // If not set, the button will be flat
+                iconKey?: string // If not set, no icon will be present in the button
+                border?: { width: number, color: number }, // If not set, the button won't have any border
+                roundness?: number // The roundness of the button
             }
         ) {
 
             super(scene);
 
-            this._offset = 15 * ratio;
+            this.isFlat = !!!options.shadowColor;
+
+            this._offset = 10 * ratio;
             if (!this.options.fontSize) {
                 this.options.fontSize = this.options.h / 1.5;
+            }
+            if (!this.options.roundness) {
+                this.options.roundness = 20 * ratio;
             }
 
             this._background = this.scene.make.graphics({ x: 0, y: 0 });
@@ -57,34 +67,54 @@ module CIV {
                 Phaser.Geom.Rectangle.Contains
             );
 
+            this.on("pointerdown", () => {
+
+                this._updateColor(this._top, this.options.activeBackgroundColor)
+                if (this.isFlat) {
+                    // Do something if button is flat
+
+                } else {
+                    this._top.y += this._offset;
+                    this._text.y += this._offset;
+                    if (this._icon) {
+                        this._icon.y += this._offset;
+                    }
+                }
+                this._isCliked = true;
+            });
+
             this.on('pointerout', () => {
 
                 if (this._isCliked) {
-                    this._top.y -= this._offset;
-                    this._text.y -= this._offset;
-                    if (this._icon) {
-                        this._icon.y -= this._offset;
+
+                    this._updateColor(this._top, this.options.backgroundColor)
+                    if (this.isFlat) {
+                        // Do something if button is flat
+
+                    } else {
+                        this._top.y -= this._offset;
+                        this._text.y -= this._offset;
+                        if (this._icon) {
+                            this._icon.y -= this._offset;
+                        }
                     }
                     this._isCliked = false;
                 }
             })
 
-            this.on("pointerdown", () => {
-
-                this._top.y += this._offset;
-                this._text.y += this._offset;
-                if (this._icon) {
-                    this._icon.y += this._offset;
-                }
-                this._isCliked = true;
-            });
-
             this.on("pointerup", () => {
                 if (this._isCliked) {
-                    this._top.y -= this._offset;
-                    this._text.y -= this._offset;
-                    if (this._icon) {
-                        this._icon.y -= this._offset;
+
+                    this._updateColor(this._top, this.options.backgroundColor)
+                    if (this.isFlat) {
+                        // Do something if button is flat
+
+                    } else {
+                        this._top.y -= this._offset;
+                        this._text.y -= this._offset;
+                        if (this._icon) {
+                            this._icon.y -= this._offset;
+                        }
                     }
                     this._isCliked = false;
 
@@ -107,28 +137,40 @@ module CIV {
             this._text.text = label;
         }
 
+        private _updateColor(g: Phaser.GameObjects.Graphics, color: number, drawBorder = true) {
+            g.clear();
+            g.fillStyle(color);
+            g.fillRoundedRect(-this.options.w / 2, -this.options.h / 2, this.options.w, this.options.h, this.options.roundness);
+
+            if (this.options.border && drawBorder) {
+                this._top.lineStyle(this.options.border.width, this.options.border.color);
+                this._top.strokeRoundedRect(-this.options.w / 2, -this.options.h / 2, this.options.w, this.options.h, this.options.roundness);
+            }
+        }
+
         public build() {
 
             // * Background
-            this._top.clear();
-            this._background.clear();
+            this._updateColor(this._top, this.options.backgroundColor)
 
-            let lighter = Helpers.shadeBlendConvert(this.options.backgroundColor, 0.2);
-            this._top.fillStyle(this.options.backgroundColor);
-            this._top.fillRoundedRect(-this.options.w / 2, -this.options.h / 2, this.options.w, this.options.h, 20 * ratio);
+            // let lighter = Helpers.shadeBlendConvert(this.options.backgroundColor, 0.2);
 
-            // * Shadow 
-            let darker = Helpers.shadeBlendConvert(this.options.backgroundColor, -0.4) as number;
-            if (this.options.shadowColor) {
-                darker = this.options.shadowColor;
+            if (!this.isFlat) {
+                this._background.clear();
+
+                // * Shadow 
+                let darker = Helpers.shadeBlendConvert(this.options.backgroundColor, -0.4) as number;
+                if (this.options.shadowColor) {
+                    darker = this.options.shadowColor;
+                }
+                this._background.fillStyle(darker, 1);
+                this._background.fillRoundedRect(-this.options.w / 2, -this.options.h / 2 + this._offset, this.options.w, this.options.h, this.options.roundness);
+
+                // Special case for the thin 0xd2ebff line under button
+                // this._background.fillStyle(0xd2ebff, 1);
+                // this._background.fillRoundedRect(-this.options.w / 2, -this.options.h / 2 + this._offset * 1.5, this.options.w, this.options.h - this._offset, this.options.roundness);
+
             }
-            this._background.fillStyle(darker, 1);
-            this._background.fillRoundedRect(-this.options.w / 2, -this.options.h / 2 + this._offset, this.options.w, this.options.h, 20 * ratio);
-
-            // Special case for the thin 0xd2ebff line under button
-            this._background.fillStyle(0xd2ebff, 1);
-            this._background.fillRoundedRect(-this.options.w / 2, -this.options.h / 2 + this._offset * 1.5, this.options.w, this.options.h - this._offset, 20 * ratio);
-
             //* Text
             let fontColor = "#fff";
             if (this.options.fontColor) {

@@ -221,6 +221,7 @@ module CIV {
                 w: 250 * ratio,
                 h: 80 * ratio,
                 backgroundColor: 0x5C69AD,
+                activeBackgroundColor: Helpers.shadeBlendConvert(0x5C69AD, -0.4) as number,
                 shadowColor: 0x07141c,
                 label: "Next turn",
                 fontSize: 25,

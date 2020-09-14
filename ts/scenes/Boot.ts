@@ -93,8 +93,8 @@ module CIV {
 
 
             // this.scene.start('gameui');
-            // this.scene.start('game');
-            this.scene.start('home');
+            this.scene.start('game');
+            // this.scene.start('home');
         }
 
     }
