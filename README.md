@@ -1,1 +1,2 @@
-# DUEL
+# Tiny land
+An attempt to create a small 4X game...
